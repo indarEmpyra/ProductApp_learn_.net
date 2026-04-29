@@ -1,0 +1,133 @@
+using System;
+namespace ProductApp.Models
+{
+  public class Product
+  {
+    public int Id { get; set; } // Primary key
+    public required string Name { get; set; }
+    public required string Description { get; set; }
+    public decimal Price { get; set; }
+    public int Quantity { get; set; }
+    public DateTime CreatedDate { get; set; }
+  }
+}
+
+// model attributes
+// [Required] → property must have a value (not null or empty)
+// [MaxLength(100)] → string property cannot exceed 100 characters
+// [Range(0.01, 10000)] → numeric property must be between 0.01 and 10000
+// [Key] → property is the primary key of the table
+
+// ✔ Required fields
+// ✔ Max length
+// ✔ Default values
+// ✔ Primary & foreign keys
+// ✔ Constraints
+// ✔ Auditing fields (CreatedAt, UpdatedAt)
+// ✔ Date/DateTime handling
+
+
+// ? This class represents a product entity in the database. It has properties for Id, Name, Description, Price, Quantity, and CreatedDate.
+// When used with Entity Framework Core, it will automatically create a database table based on this class. The Id property will be the primary key of the table, and the other properties will be columns in the table.
+// This allows us to easily perform CRUD operations on products in our database using Entity Framework Core. Migrations will help us keep our database schema in sync with our model classes as we make changes to them over time.  
+
+
+
+// Request:
+// {
+//   "name": "I-Mac",
+//   "description": "Awesome desktop",
+//   "price": 120,
+//   "quantity": 10,
+// } -->
+
+// AbandonedMutexException 
+// "errors": {
+//     "$": [
+//       "The JSON object contains a trailing comma at the end which is not supported in this mode. 
+//      Change the reader options. Path: $ | LineNumber: 5 | BytePositionInLine: 0."
+//     ],
+//     "product": [
+//       "The product field is required."
+//     ]
+//   },
+
+// This is not a code bug — your request body has a trailing comma in the JSON. For example:
+
+
+/*----------------------------------------------------------------------------------------------------------*/
+
+
+
+// EF Core maps this class → database table
+// Each property → column
+// Id → automatically becomes Primary Key
+
+// This class is a simple POCO (Plain Old CLR Object) that represents a product in our application.
+// It has properties for Id, Name, Description, Price, Quantity, and CreatedDate.
+// When we use Entity Framework Core, it will automatically create a database table based on this class.
+// The Id property will be the primary key of the table, and the other properties will be columns in the table. 
+// This allows us to easily perform CRUD operations on products in our database using Entity Framework Core.
+// Migrations will help us keep our database schema in sync with our model classes as we make changes to them over time.
+
+// DTO (Data Transfer Object) is a design pattern used to transfer data between software application subsystems.
+/// Represents a product entity in the database.
+/// This is a POCO (Plain Old CLR Object) that maps to a database table via Entity Framework Core.
+/// </summary>
+/// <remarks>
+/// <para>
+/// The Product class serves as the domain model for product-related data. Each property corresponds
+/// to a column in the database table, with the Id property automatically designated as the primary key.
+/// </para>
+/// <para>
+/// When used with DTOs (Data Transfer Objects), this model is typically mapped to a ProductDto class
+/// for API responses and requests. This separation allows you to:
+/// - Control which properties are exposed to clients (e.g., hide CreatedDate from responses)
+/// - Flatten or restructure the data for specific API endpoints
+/// - Prevent overposting attacks by only accepting specific fields
+/// - Maintain a clear contract between your API and consumers
+/// </para>
+/// <para>
+/// A typical DTO mapping pattern would look like:
+/// Product (Domain Model) → ProductDto (Data Transfer Object) → JSON/API Response
+
+
+// ? Scaffolding a model in ASP.NET Core using Entity Framework Core:
+// 1. Database → Code (Reverse Engineering)
+//You already have a database
+// 👉 You generate:
+// Entities
+// DbContext
+// Command: dotnet ef dbcontext scaffold "connection-string" Microsoft.EntityFrameworkCore.SqlServer -o Models
+//
+// 2. Code → Database (Migrations)
+// You start with code (model classes) and generate the database schema from it.
+// You create model classes (like Product and User) and then use EF Core migrations to create the database schema based on those models.
+// The migration captures the changes you made to your model and generates code to apply those changes to the database. 
+//This way, you can keep your database schema in sync with your model classes as they evolve over time. 
+
+//    - dotnet ef migrations add InitialCreate // Creates a new migration named "InitialCreate" based on the current state of your model classes. This generates code that describes how to create the database schema (tables, columns, constraints) based on your model classes.
+//    - dotnet ef migrations add UpdateModel
+//    - dotnet ef database update 
+
+// After creating the migration, you apply it to the database using: dotnet ef database update. This process ensures that your database schema matches your model classes as they evolve over time.
+
+// 3. Model → Controller (Code Generation)
+// You create a model class (like Product) and then use scaffolding to generate a controller with CRUD actions based on that model.
+// Command: dotnet aspnet-codegenerator controller -name ProductController -m Product -dc AppDbContext --relativeFolderPath Controllers --useDefaultLayout --referenceScriptLibraries
+// This command generates a ProductController with actions for Create, Read, Update, and Delete operations based on the Product model and AppDbContext. It also generates views for these actions if you are using MVC (not applicable for Web API).
+// This scaffolding process helps you quickly set up a controller with standard CRUD operations based on your
+
+
+
+// After running the migration commands, EF Core will create a Products table in your database with columns corresponding to the properties defined in the Product class.
+// You can then perform CRUD operations on products in the database using Entity Framework Core's DbContext. 
+// Migrations are a way to keep your database schema in sync with your EF Core model classes.
+// When you create or modify your model classes (like Product or User), you need to create a migration to update the database schema accordingly. The migration captures the changes you made to your model and generates code to apply those changes to the database. 
+// To create a migration, you use the following command in the terminal: dotnet ef migrations add InitialCreate. After creating the migration, you apply it to the database using: dotnet ef database update. This process ensures that your database schema matches your model classes as they evolve over time.  
+// Note: If you make changes to your model classes (e.g., add a new property), you need to create a new migration to update the database schema accordingly.
+// Each migration captures the changes you made to your model and generates code to apply those changes to the database. This way, you can keep your database schema in sync with your model classes as they evolve over time.  
+// For example, if you add a new property to the Product class (e.g., public string Category { get; set; }), you would need to create a new migration to add the Category column to the Products table in the database. You would run: dotnet ef migrations add AddCategoryToProduct, and then apply it with: dotnet ef database update.
+// This process allows you to manage changes to your database schema in a structured way as your application evolves.
+// Migrations are a powerful feature of Entity Framework Core that help you manage changes to your database schema over time. 
+// They allow you to evolve your database schema as your application requirements change, without losing existing data. By creating and applying migrations, you can keep your database schema in sync with your model classes, ensuring that your application continues to function correctly as you make changes to your models.

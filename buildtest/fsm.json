@@ -1,0 +1,27 @@
+{
+  "New": {
+    "actions": {
+      "VerifyEmail": "EmailVerified",
+      "Delete": "Deleted"
+    }
+  },
+  "EmailVerified": {
+    "actions": {
+      "Activate": "Active"
+    }
+  },
+  "Active": {
+    "actions": {
+      "Suspend": "Suspended",
+      "Delete": "Deleted"
+    }
+  },
+  "Suspended": {
+    "actions": {
+      "Activate": "Active"
+    }
+  },
+  "Deleted": {
+    "actions": {}
+  }
+}
