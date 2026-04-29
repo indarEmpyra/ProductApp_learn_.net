@@ -556,7 +556,6 @@ C:\Users\IndrjitKumar\EmpyraWork\learn.net\ProductApp_learn_.net\obj\Debug\net9.
 C:\Users\IndrjitKumar\EmpyraWork\learn.net\ProductApp_learn_.net\obj\Debug\net9.0\ProductApp.pdb
 C:\Users\IndrjitKumar\EmpyraWork\learn.net\ProductApp_learn_.net\obj\Debug\net9.0\ProductApp.genruntimeconfig.cache
 C:\Users\IndrjitKumar\EmpyraWork\learn.net\ProductApp_learn_.net\obj\Debug\net9.0\ref\ProductApp.dll
-C:\Users\IndrjitKumar\EmpyraWork\learn.net\ProductApp_learn_.net\bin\Debug\net9.0\fsm.json
 c:\Users\IndrjitKumar\EmpyraWork\learn.net\ProductApp_learn_.net\buildtest\appsettings.Development.json
 c:\Users\IndrjitKumar\EmpyraWork\learn.net\ProductApp_learn_.net\buildtest\appsettings.json
 c:\Users\IndrjitKumar\EmpyraWork\learn.net\ProductApp_learn_.net\buildtest\fsm.json
@@ -814,3 +813,10 @@ c:\Users\IndrjitKumar\EmpyraWork\learn.net\ProductApp_learn_.net\buildtest\runti
 c:\Users\IndrjitKumar\EmpyraWork\learn.net\ProductApp_learn_.net\buildtest\runtimes\win-x86\native\Microsoft.Data.SqlClient.SNI.dll
 c:\Users\IndrjitKumar\EmpyraWork\learn.net\ProductApp_learn_.net\buildtest\runtimes\win\lib\net6.0\System.Runtime.Caching.dll
 c:\Users\IndrjitKumar\EmpyraWork\learn.net\ProductApp_learn_.net\buildtest\runtimes\win\lib\net8.0\System.Windows.Extensions.dll
+C:\Users\IndrjitKumar\EmpyraWork\learn.net\ProductApp_learn_.net\bin\Debug\net9.0\buildtest\appsettings.Development.json
+C:\Users\IndrjitKumar\EmpyraWork\learn.net\ProductApp_learn_.net\bin\Debug\net9.0\buildtest\appsettings.json
+C:\Users\IndrjitKumar\EmpyraWork\learn.net\ProductApp_learn_.net\bin\Debug\net9.0\buildtest\fsm.json
+C:\Users\IndrjitKumar\EmpyraWork\learn.net\ProductApp_learn_.net\bin\Debug\net9.0\buildtest\ProductApp.deps.json
+C:\Users\IndrjitKumar\EmpyraWork\learn.net\ProductApp_learn_.net\bin\Debug\net9.0\buildtest\ProductApp.runtimeconfig.json
+C:\Users\IndrjitKumar\EmpyraWork\learn.net\ProductApp_learn_.net\bin\Debug\net9.0\buildtest\ProductApp.staticwebassets.endpoints.json
+C:\Users\IndrjitKumar\EmpyraWork\learn.net\ProductApp_learn_.net\obj\Debug\net9.0\ProductApp.sourcelink.json

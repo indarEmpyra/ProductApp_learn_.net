@@ -3,19 +3,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ProductApp.Models
 {
-
-  // public class Role
-  // {
-  //   [Key]
-  //   public int Id { get; set; }
-
-  //   [Required]
-  //   [MaxLength(50)]
-  //   public string Name { get; set; }
-
-  //   public ICollection<User> Users { get; set; }
-  // }
-
   public class User
   {
 
@@ -23,31 +10,21 @@ namespace ProductApp.Models
     [Key]
     public int Id { get; set; }
 
-    // Required + Max Length
-    [Required]
-    [MaxLength(100)]
     public string FirstName { get; set; }
 
-    [Required]
-    [MaxLength(100)]
     public string LastName { get; set; }
 
     // Unique + Required
-    [Required]
-    [MaxLength(150)]
-    [EmailAddress]
     public string Email { get; set; }
 
     // Optional Field
-    [MaxLength(20)]
     public string PhoneNumber { get; set; }
 
     // Default Value
-    [Required]
+
     public bool IsActive { get; set; } = true;
 
     // Date Created (UTC)
-    [Required]
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
     // Last Updated

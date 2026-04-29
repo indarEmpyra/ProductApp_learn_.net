@@ -90,7 +90,8 @@ namespace ProductApp.Services.Implementations
 // Yes — it follows the Async suffix convention in .NET. EF Core provides async versions of all common LINQ terminal operations:
 
 // Sync (blocks thread),	Async (non-blocking)
-// .ToList()	.ToListAsync()
+// .ToList()	
+// .ToListAsync()
 // .FirstOrDefault()	
 // .FirstOrDefaultAsync()
 // .Find()	
@@ -104,7 +105,8 @@ namespace ProductApp.Services.Implementations
 // .SaveChanges()  
 // .SaveChangesAsync()
 
-// Rule of thumb: In a web API, always prefer the Async versions for DB calls. This frees up the thread to serve other HTTP requests while waiting for the database — instead of sitting idle and blocking.
+// Rule of thumb: In a web API, always prefer the Async versions for DB calls. 
+// This frees up the thread to serve other HTTP requests while waiting for the database — instead of sitting idle and blocking.
 
 // ? Why it needs using Microsoft.EntityFrameworkCore:
 
