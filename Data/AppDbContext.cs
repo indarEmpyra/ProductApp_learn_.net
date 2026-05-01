@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 // if missing, install it [dotnet add package Microsoft.EntityFrameworkCore] 
+// is this a global installation? No, you need to run this command in the project directory where your .csproj file is located.
+// This is required to use the DbContext and related EF Core functionality in your application.
 using ProductApp.Models;
 
 namespace ProductApp.Data

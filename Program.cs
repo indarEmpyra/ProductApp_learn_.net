@@ -1,17 +1,32 @@
 using ProductApp.Data;
+// This is required to use AppDbContext when configuring the DbContext with SQL Server in the dependency injection container.
+// using directives to include necessary namespaces for the application.
+
+
 using Microsoft.EntityFrameworkCore;
+// This is required to use the UseSqlServer() extension method when configuring the 
+// DbContext with SQL Server in the dependency injection container.
 
 using ProductApp.Services.Interfaces;
 using ProductApp.Services.Implementations;
 
 
 using ProductApp.Middleware;
+// This is required to use the RequestLoggingMiddleware in the middleware pipeline configuration 
+// (app.UseMiddleware<RequestLoggingMiddleware>()).
 
 var builder = WebApplication.CreateBuilder(args);
+// This line initializes a new instance of the WebApplicationBuilder class, which is used to configure and build the web application.
+// The builder provides access to services, configuration, and other settings needed to set up the application. 
+// It takes command-line arguments (args) which can be used for configuration purposes 
+// (e.g., setting environment variables, specifying URLs, etc.). 
+// The builder is the starting point for configuring the application's services and middleware before building and running the app.
 
-// Add swagger for API documentation and testing
-builder.Services.AddEndpointsApiExplorer(); 
-// This is required for minimal APIs to generate OpenAPI documentation. It registers the services needed to discover and describe your API endpoints, which is essential for Swagger to generate accurate documentation. Even if you're using controllers, it's a good idea to include this to ensure all endpoints are documented correctly.
+builder.Services.AddEndpointsApiExplorer();
+// This is required for minimal APIs to generate OpenAPI documentation. 
+// It registers the services needed to discover and describe your API endpoints, which is essential for Swagger to 
+// generate accurate documentation. Even if you're using controllers, 
+// it's a good idea to include this to ensure all endpoints are documented correctly.
 
 builder.Services.AddSwaggerGen();
 // Add swagger for API documentation and testing
@@ -19,6 +34,8 @@ builder.Services.AddSwaggerGen();
 // dotnet add package Swashbuckle.AspNetCore
 // Swashbuckle.AspNetCore package (which provides AddSwaggerGen() and UseSwaggerUI()) is missing — 
 // only Microsoft.AspNetCore.OpenApi is installed.
+
+
 
 // Package installed. Now run the app and open:
 
@@ -28,22 +45,27 @@ builder.Services.AddSwaggerGen();
 // The only missing piece was the Swashbuckle.AspNetCore NuGet package.
 
 
-// Add dbContext to the service container
-// This allows us to inject AppDbContext into our controllers and services
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+// Add dbContext to the service container
+// This allows us to inject AppDbContext into our controllers and services using dependency injection.
+// The UseSqlServer() method configures the DbContext to use SQL Server as the database provider, 
+// and it retrieves the connection string from the app's configuration (e.g., appsettings.json) using the key "DefaultConnection".
 
 
 // Add Controllers
 builder.Services.AddControllers();
+// This registers the services required for using controllers in the application.
+// It allows you to define API endpoints using controller classes decorated with attributes like [ApiController], [Route], [HttpGet], etc.
+// This is essential for building a Web API using the controller-based approach in ASP.NET Core.
+
 
 // Add Services
-// AddScoped → one instance per request
-// DI container injects dependencies automatically
-
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IUserService, UserService>();
+// AddScoped → A new instance of the service will be created for each HTTP request and shared within that request.
+
 
 // ? What this line does:
 // It tells ASP.NET's built-in IoC container: "Whenever something asks for IProductService, create and give it a ProductService."
@@ -79,8 +101,10 @@ builder.Services.AddScoped<IUserService, UserService>();
 // Request completes → both are disposed
 
 
-
+//
 var app = builder.Build();
+// This builds the WebApplication based on the configuration defined in the builder.
+// After this line, the app variable contains the configured application, and you can start adding middleware
 
 // how to read environment variables in ASP.NET Core? Use builder.Configuration.GetValue<string>("MyVariable") or builder.
 // Environment.IsEnvironment("MyEnvironment") to conditionally enable features based on environment settings.
@@ -97,9 +121,11 @@ if (app.Environment.IsDevelopment()) // Only enable Swagger in development envir
   app.UseSwaggerUI(); // Serve the Swagger UI at /swagger, which reads swagger.json and renders the interactive API docs
 }
 
-app.UseHttpsRedirection(); // Redirect HTTP requests to HTTPS for better security
+app.UseHttpsRedirection();
+// Redirect HTTP requests to HTTPS for better security
 
-app.UseAuthorization(); // Enable authorization middleware (if you have any [Authorize] attributes in your controllers)
+app.UseAuthorization();
+// Enable authorization middleware (if you have any [Authorize] attributes in your controllers)
 
 // Add custom middleware to log requests and responses
 app.UseMiddleware<RequestLoggingMiddleware>();
@@ -144,3 +170,15 @@ app.Run();
 
 
 
+
+// Environment Variables and User Secrets:
+// In ASP.NET Core, you can manage sensitive configuration data (like API keys, connection strings, etc.) 
+// using environment variables or the User Secrets feature during development.
+
+// appsettings.json is great for non-sensitive configuration, 
+// but you should avoid putting secrets there, especially if your code is in a public repository.
+
+// appsettings.development.json is used for development-specific settings, but it’s still not ideal for secrets.
+
+// dotnet user-secrets init
+// dotnet user-secrets set "ApiKey" "secret-value"

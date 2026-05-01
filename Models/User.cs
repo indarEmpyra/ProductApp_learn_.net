@@ -10,17 +10,31 @@ namespace ProductApp.Models
     [Key]
     public int Id { get; set; }
 
+    [Required]
+    [MaxLength(50)]
     public string FirstName { get; set; }
 
+    [MaxLength(50)]
     public string LastName { get; set; }
 
     // Unique + Required
+    [Required]
+    [EmailAddress]
     public string Email { get; set; }
 
-    // Optional Field
+    [Required]
+    [Phone]
     public string PhoneNumber { get; set; }
 
-    // Default Value
+
+    [Required]
+    [ForeignKey("RoleId")]
+    // How will we know which role a user belongs to? We can add a RoleId foreign key property to the User class, 
+    // and then use the [ForeignKey] attribute to specify that it references the Role entity. 
+    // This way, we can establish a relationship between users and roles in our database.
+
+    // Without mentioning table name in the [ForeignKey] attribute, EF will look for a table named "Role" by convention.
+    public int RoleId { get; set; }
 
     public bool IsActive { get; set; } = true;
 
