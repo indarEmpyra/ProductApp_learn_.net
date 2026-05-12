@@ -1,4 +1,4 @@
-namespace ProductApp_learn_.net.Models
+namespace ProductApp.Models
 {
   public class Role
   {

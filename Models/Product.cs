@@ -151,3 +151,22 @@ namespace ProductApp.Models
 // This process allows you to manage changes to your database schema in a structured way as your application evolves.
 // Migrations are a powerful feature of Entity Framework Core that help you manage changes to your database schema over time. 
 // They allow you to evolve your database schema as your application requirements change, without losing existing data. By creating and applying migrations, you can keep your database schema in sync with your model classes, ensuring that your application continues to function correctly as you make changes to your models.
+
+
+
+
+
+
+//? How to update the entity in the Db after making changes i.e removing columns and adding new columns or changing constraints?
+// When you make changes to your entity classes, such as adding or removing properties, changing data types, or modifying constraints, you need to create a new migration to update the database schema accordingly. 
+// You can do this using the Entity Framework Core command-line tools or the Package Manager Console in Visual Studio.
+// For example, if you are using the command-line tools, you can run the following command to create a new migration after making changes to your entity classes:
+// dotnet ef migrations add UpdateJobEntity
+// This will generate a new migration file with the necessary code to update the database schema based on the changes you made to the Job entity.
+// After creating the migration, you need to apply it to the database using the following command:
+
+// dotnet ef database update
+
+// This will execute the migration and update the database schema to reflect the changes you made to the Job entity. Make sure to review the generated migration code to ensure it accurately reflects the changes you intended to make before applying it to the database. 
+
+
