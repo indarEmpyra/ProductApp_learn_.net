@@ -236,7 +236,101 @@ namespace ProductApp.Controllers
       var existingUser = await _userService.GetUserByIdAsync(id);
       if (existingUser == null) return ApiResponseHelper.NotFound();
 
-      // Validate request
+      //# Validate request
+      // Is validation done in the controller or in the service layer?
+      // Validation can be done in both the controller and service layer, depending on the specific requirements and design of the application.
+      // In the controller, you can perform basic validation on the incoming request data, such as checking for required fields, data formats, 
+      // and simple business rules. This helps to ensure that the data is in a valid state before it reaches the service layer.
+      // In the service layer, you can perform more complex validation that may involve business logic, interactions with other services, 
+      // or database checks. This allows you to enforce more specific rules and constraints that are relevant to the application's domain.
+      // Ultimately, the choice of where to perform validation depends on the specific needs of your application and how you want to structure 
+      // your code for maintainability and separation of concerns. It's common to see a combination of both controller-level validation for 
+      // basic checks and service-level validation for more complex rules.  
+
+      // I would prefer all validations to be done in the service layer to keep the controller thin and focused on handling HTTP requests and responses. 
+
+      //# Is there an common standard for validation? Could you help with an example of how to implement validation in the service layer?
+      // A common standard for validation in the service layer is to use a validation framework such as FluentValidation or Data Annotations. 
+      // These frameworks allow you to define validation rules for your models and automatically validate them when needed.
+
+      //#FluentValidation: 
+      // Example using FluentValidation:  
+      // First, you would define a validator for your User model:
+      // public class UserValidator : AbstractValidator<User>
+      // {
+      //     public UserValidator()
+      //     {
+      //         RuleFor(user => user.FirstName).NotEmpty().WithMessage("First name is required.");
+      //         RuleFor(user => user.LastName).NotEmpty().WithMessage("Last name is required.");
+      //         RuleFor(user => user.Email).NotEmpty().EmailAddress().WithMessage("A valid email is required.");
+      //     }
+      // }
+      // Then, in your service layer, you would use the validator to validate the User object before performing any operations:
+      // public async Task<User> CreateUserAsync(User user) 
+      // {
+      //     var validator = new UserValidator();
+      //     var validationResult = validator.Validate(user);
+      //     if (!validationResult.IsValid)
+      //     {
+      //         throw new ValidationException(validationResult.Errors);
+      //     }
+      //     // Proceed with creating the user if validation is successful  
+      //     // ... (code to create user)
+      // }
+      // In this example, the UserValidator defines the validation rules for the User model, and  
+      // the CreateUserAsync method in the service layer uses the validator to validate the User object before proceeding with the creation logic.
+
+
+      //# Data annotations:
+      // You can also use data annotations for validation in the service layer.
+
+      // Is the Data annotation and RequestDTO same, because we check for the correct request in Request DTO as well?
+      // Data annotations and RequestDTOs serve different purposes in the context of validation.
+      // Data annotations are attributes that you can apply to properties of your model classes to specify validation rules, 
+      // such as [Required], [MaxLength], [EmailAddress], etc.  
+      // RequestDTOs are used to define the structure of the data that is expected in a request, and can also include validation 
+      // attributes to ensure the data is valid before it reaches the service layer.
+
+      // But, we can mention data annotations [Required], [MaxLength], [EmailAddress], etc.  in the RequestDTO to validate the incoming request data before it reaches the service layer. 
+      // This allows us to catch validation errors early and return appropriate responses to the client without having to execute any business logic in the service layer.
+      // However, we can also perform additional validation in the service layer that may involve more complex business rules or interactions with other services or the database.
+      // So, while there may be some overlap in the validation rules defined in the RequestDTO
+
+
+      // Example:
+      // public class User
+      // {
+      //     [Required(ErrorMessage = "First name is required.")]
+      //     public string FirstName { get; set; }
+      //     [Required(ErrorMessage = "Last name is required.")]
+      //     public string LastName { get; set; }
+      //     [Required(ErrorMessage = "Email is required.")]
+      //     [EmailAddress(ErrorMessage = "A valid email is required.")]
+      //     public string Email { get; set; }
+      // }
+      // Then, in your service layer, you can validate the User object using the Validator class
+      // public async Task<User> CreateUserAsync(User user)
+      // {
+      //     var validationContext = new ValidationContext(user);
+      //     var validationResults = new List<ValidationResult>();
+      //     bool isValid = Validator.TryValidateObject(user, validationContext, validationResults, true);
+      //     if (!isValid)
+      //     {
+      //         var errorMessages = validationResults.Select(vr => vr.ErrorMessage).ToList();
+      //         throw new ValidationException(string.Join("; ", errorMessages));
+      //     }
+      //     // Proceed with creating the user if validation is successful
+      //     // ... (code to create user)
+      // }
+      // In this example, the User class has data annotations that define the validation rules for its properties, and the CreateUserAsync
+      //  method in the service layer uses the Validator class to validate the User object before proceeding with the creation logic. 
+      // If validation fails, a ValidationException is thrown with the error messages.
+      // This approach allows you to keep validation logic within the service layer while still leveraging the benefits of data 
+      // annotations for defining validation rules directly on the model properties. 
+      // It also helps to maintain separation of concerns, as the controller remains focused on handling HTTP requests and responses, 
+      // while the service layer is responsible for business logic and validation. 
+
+
       var tempUser = request.ToUser();
       tempUser.Id = id; // Set ID for validation
       var validationResult = ValidationHelper.ValidateUser(tempUser);

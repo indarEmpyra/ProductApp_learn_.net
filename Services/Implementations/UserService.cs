@@ -109,7 +109,7 @@ namespace ProductApp.Services.Implementations
   }
 }
 
-
+//public async Task<List<User>> GetAllUsersAsync()
 // ? This class implements the IUserService interface, providing concrete implementations for all the methods defined in the interface.
 
 // public	Access modifier — this method is accessible from anywhere
@@ -117,6 +117,28 @@ namespace ProductApp.Services.Implementations
 // Task<List<Product>>	The return type — a Task wrapping a List<Product>
 // GetAllProductsAsync	Method name — the Async suffix is a convention for async methods
 // ()	No parameters needed
+
+// where is User defined?
+// User is defined in the ProductApp.Models namespace, likely as a class representing a user entity in the database,
+// with properties like Id, FirstName, LastName, Email, etc.
+
+// But, we don't want to return User type directly, instead want to use a DTO (Data Transfer Object) like UserResponse to 
+// control what data is sent back to the client and to decouple our internal data model from the API contract then how can we return UserResponse instead of User?
+// To return UserResponse instead of User, you can modify the GetAllUsersAsync method to project the User entities into UserResponse DTOs before returning them.
+// Here's how you can do it using LINQ's Select method:
+// public async Task<List<UserResponse>> GetAllUsersAsync()
+// {
+//   return await _context.Users
+//     .Select(u => new UserResponse
+//     {
+//       Id = u.Id,
+//       FirstName = u.FirstName,
+//       LastName = u.LastName,
+//       CreatedDate = u.CreatedDate,
+//       IsActive = u.IsActive
+//     })
+//     .ToListAsync();
+// }   
 
 
 // ? Why Task<List<Product>> instead of just List<Product>?
@@ -161,6 +183,11 @@ namespace ProductApp.Services.Implementations
 // ToListAsync() doesn't exist on IQueryable<T> by default 
 // — it's added via extension methods from that namespace. 
 // Without the using, you'd get a compile error even though .ToList() (LINQ, synchronous) would still work.
+
+
+
+
+
 
 
 
