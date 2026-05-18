@@ -28,6 +28,18 @@ namespace ProductApp.Services.Interfaces
     // with this, what we can do is, we can create a mock implementation of IUserService for testing purposes, 
     // which allows us to test the UserController without needing to set up a real database or data source.
 
+    // Can we do more on interface? Like, can we add properties, methods or events in interface?
+    // Yes, in C#, interfaces can contain method signatures, properties, events, and indexers. However, they cannot contain fields or implementation code.
+    // For example, you can define a property in an interface like this:
+    // public interface IExample
+    // {
+    //     string Name { get; set; }
+    //     void DoSomething();
+    //     event EventHandler SomethingHappened;
+    // }
+    // In this example, the IExample interface defines a property called Name, a method called DoSomething, and an event called SomethingHappened. 
+    // Any class that implements this interface would need to provide implementations for the property, method, and event defined in the interface. 
+
 
 
     Task<User?> GetUserByIdAsync(int id);
