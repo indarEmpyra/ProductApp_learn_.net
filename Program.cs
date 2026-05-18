@@ -1,11 +1,12 @@
-using ProductApp.Data;
-// This is required to use AppDbContext when configuring the DbContext with SQL Server in the dependency injection container.
 // using directives to include necessary namespaces for the application.
 
 
 using Microsoft.EntityFrameworkCore;
 // This is required to use the UseSqlServer() extension method when configuring the 
 // DbContext with SQL Server in the dependency injection container.
+
+using ProductApp.Data;
+// This is required to use AppDbContext when configuring the DbContext with SQL Server in the dependency injection container.
 
 using ProductApp.Services.Interfaces;
 using ProductApp.Services.Implementations;
@@ -34,18 +35,64 @@ using ProductApp.Middleware;
 // app.UseMiddleware<AuthenticationMiddleware>();
 
 
+// / ********************************************************/
+
 var builder = WebApplication.CreateBuilder(args);
+
+//? Where does the WebApplicationBuilder class come from? 
+// It is part of the Microsoft.AspNetCore.Builder namespace, which is included in the Microsoft.AspNetCore.App framework.
+
 // This line initializes a new instance of the WebApplicationBuilder class, which is used to configure and build the web application.
 // The builder provides access to services, configuration, and other settings needed to set up the application. 
 // It takes command-line arguments (args) which can be used for configuration purposes 
 // (e.g., setting environment variables, specifying URLs, etc.). 
+
+// And, how to access the configuration/args values in the builder? You can access configuration values using builder.Configuration, 
+// and command-line arguments can be accessed through builder.Configuration.GetCommandLineArgs() or directly from the args parameter if needed.
 // The builder is the starting point for configuring the application's services and middleware before building and running the app.
+
+
+//# builder.services is the IServiceCollection where you register services for dependency injection.
+// This is where you add services that your application will use, such as controllers, database contexts, custom services, etc.
+
+// is AddEndpointsApiExplorer pre-defined method in services class? 
+// Yes, AddEndpointsApiExplorer() is a predefined extension method provided by the Microsoft.AspNetCore.Mvc.ApiExplorer namespace.
 
 builder.Services.AddEndpointsApiExplorer();
 // This is required for minimal APIs to generate OpenAPI documentation. 
 // It registers the services needed to discover and describe your API endpoints, which is essential for Swagger to 
 // generate accurate documentation. Even if you're using controllers, 
 // it's a good idea to include this to ensure all endpoints are documented correctly.
+
+// Can we use AddEndpointsApiExplorer() without using minimal APIs? Yes, you can use AddEndpointsApiExplorer() even if you're not using minimal APIs.
+// This method is part of the ASP.NET Core framework and is used to enable API endpoint discovery and documentation generation,
+// which is beneficial for both minimal APIs and controller-based APIs. It helps tools like Swagger to generate accurate API 
+// documentation regardless of the approach you take to define your endpoints.
+
+// Can we add swagger without using minimal APIs? Yes, you can add Swagger to a controller-based API without using minimal APIs. 
+// Swagger is a tool for generating interactive API documentation, and it can be used with both minimal
+// APIs and traditional controller-based APIs. To add Swagger to a controller-based API, you would typically use the Swashbuckle.AspNetCore package,
+// which provides the AddSwaggerGen() and UseSwaggerUI() methods to set up Swagger in your application. 
+//You can follow the same steps to configure Swagger in a controller-based API as you would with a minimal API, 
+// and it will work seamlessly to generate documentation for your API endpoints defined in controllers.
+
+// #How to add this only for development environment? 
+// You can conditionally add Swagger services and middleware based on the environment by checking the environment in Program.cs.
+// For example, you can wrap the Swagger configuration in an if statement that checks if the environment
+// is Development:
+// if (app.Environment.IsDevelopment())
+// {
+//    builder.Services.AddEndpointsApiExplorer();
+//    builder.Services.AddSwaggerGen();
+//    app.UseSwagger();
+//    app.UseSwaggerUI();
+// }
+// This way, Swagger will only be available in the development environment, and it won't be exposed in production, 
+// which is a common best practice for security reasons.
+
+// Can't we add builder.Services.AddEndpointsApiExplorer(); too inside the if statement for development environment?
+// Yes, you can add builder.Services.AddEndpointsApiExplorer() inside the if statement for the development environment 
+// if you only want to enable API endpoint discovery and documentation generation in development.
 
 builder.Services.AddSwaggerGen();
 // Add swagger for API documentation and testing
@@ -55,23 +102,21 @@ builder.Services.AddSwaggerGen();
 // only Microsoft.AspNetCore.OpenApi is installed.
 
 
-
-// Package installed. Now run the app and open:
-
-// http://localhost:5186/swagger
-
-// That's it — everything in Program.cs was already correctly set up (AddSwaggerGen(), UseSwagger(), UseSwaggerUI()). 
-// The only missing piece was the Swashbuckle.AspNetCore NuGet package.
-
-
-
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
 // Add dbContext to the service container
 // This allows us to inject AppDbContext into our controllers and services using dependency injection.
 // The UseSqlServer() method configures the DbContext to use SQL Server as the database provider, 
 // and it retrieves the connection string from the app's configuration (e.g., appsettings.json) using the key "DefaultConnection".
+
+//# how to read appsettings.json value. i.e
+//1.  ConnectionString: builder.Configuration.GetConnectionString("DefaultConnection") looks for a connection string named "DefaultConnection"
+// in the configuration sources (like appsettings.json, environment variables, etc.) and returns its value.
+
+//2. builder.Configuration.GetValue<string>("MySetting") looks for a configuration value with the key "MySetting" and returns it as a string.
+
+//3. builder.Configuration.GetSection("MySection").GetValue<string>("MySetting") looks for a section named "MySection"
+//  in the configuration and then retrieves the value of "MySetting" within that section as a string.
 
 
 // Add Controllers
@@ -84,11 +129,36 @@ builder.Services.AddControllers();
 // Add Services
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IUserService, UserService>();
+
 // AddScoped → A new instance of the service will be created for each HTTP request and shared within that request.
+// This is the most common lifetime for services that interact with the database (like your ProductService and UserService) 
+// because it ensures that each request gets its own instance of the service and its dependencies (like DbContext), 
+// which helps to manage resources and avoid issues with shared state across requests.
+
+// Is this a pre-defined way to register services in ASP.NET Core? 
+// Yes, AddScoped is one of the built-in methods provided by ASP.NET Core's dependency injection system to register services with a specific lifetime.
+// And, is this constructor injection? 
+// Yes, this is an example of constructor injection, where the dependencies (IProductService and IUserService) are injected into the controllers
+// or other services that require them through their constructors.
+
+// If we were to inject a service without registering it in the DI container, we would get an error at runtime when the application tries to resolve that service.
+
+// If we were to inject a service as a singleton instead of scoped, we would have a single instance of that service shared across all requests, 
+// which could lead to issues with shared state and concurrency, especially if the service 
+// interacts with a database context (like AppDbContext) that is also scoped. 
+// builder.Services.AddSingleton<IProductService, ProductService>(); 
+// Example of a singleton service: a configuration service that reads settings once and provides them throughout the app.
+
+// If we were to inject a service as transient, a new instance would be created every time it is requested, 
+// which could lead to performance issues if the service is expensive to create or if it maintains state that should be shared within a request. 
+// builder.Services.AddTransient<IProductService, ProductService>();
+// Example of a transient service: a service that generates random values or performs simple calculations without maintaining any state.
 
 
 // ? What this line does:
 // It tells ASP.NET's built-in IoC container: "Whenever something asks for IProductService, create and give it a ProductService."
+// IOC container will manage the lifecycle of ProductService instances based on the specified lifetime (scoped in this case),
+// and it will automatically resolve and inject the dependencies (like AppDbContext) when creating a ProductService instance.
 
 // ? What is Dependency Injection (DI)?
 // Instead of a class creating its own dependencies, they are provided from outside. 
@@ -114,6 +184,12 @@ builder.Services.AddScoped<IUserService, UserService>();
 
 // AddScoped is the right choice here because AppDbContext (EF Core) is also scoped 
 //— one DB context per request keeps DB operations consistent within a single request.
+// Can you explain this line in more detail?  
+// This means that for each HTTP request, a new instance of ProductService and AppDbContext is created.
+// They are disposed of at the end of the request, ensuring that each request has its own isolated set of services.
+// This is important because it prevents issues with shared state and concurrency that can arise when using singleton services for things like database contexts.
+// 
+
 
 // The full flow:
 // HTTP Request
@@ -151,20 +227,42 @@ var app = builder.Build();
 // app.Environment provides information about the hosting environment (Development, Staging, Production).
 // This allows you to conditionally enable features (like Swagger) only in development, which is a common best practice for security reasons.
 
-if (app.Environment.IsDevelopment()) // Only enable Swagger in development environment for security reasons
-// In production, you typically don't want to expose detailed API documentation publicly.
-// You can configure this further by using environment variables or appsettings.json to control when Swagger is enabled.
-
+if (app.Environment.IsDevelopment())
 {
   app.UseSwagger(); // Generate swagger.json at runtime
   app.UseSwaggerUI(); // Serve the Swagger UI at /swagger, which reads swagger.json and renders the interactive API docs
 }
+// Only enable Swagger in development environment for security reasons
+// In production, you typically don't want to expose detailed API documentation publicly.
+// You can configure this further by using environment variables or appsettings.json to control when Swagger is enabled.
+
+// Middleware configuration
+// is "Use" as a prefix used for middleware as a standard/convention? 
+// Yes, in ASP.NET Core, middleware components are typically added to the request pipeline using the "Use" prefix.
 
 app.UseHttpsRedirection();
 // Redirect HTTP requests to HTTPS for better security
 
 app.UseAuthorization();
 // Enable authorization middleware (if you have any [Authorize] attributes in your controllers)
+// [Authorize(AuthenticationSchemes = "Bearer", Roles = "Admin, Staff, ExternalAPIClient")] 
+// This means that the endpoint requires authentication using the "Bearer" scheme and is only accessible to users in the "Admin", "Staff", or "ExternalAPIClient" roles.
+// If you have authentication middleware (like app.UseAuthentication()) configured before this, 
+// it will handle the authentication process and set the User property on the HttpContext. 
+
+//# what are schemes in ASP.NET Core authentication? And, how wre we adding them to Authorize attribute? Are there more parameters?
+// Authentication schemes in ASP.NET Core are a way to specify which authentication handler should be used for a particular endpoint or controller.
+// They allow you to have multiple authentication methods (like JWT, cookies, etc.) in the same application and control which one is used for each endpoint.
+// You can specify the authentication scheme in the [Authorize] attribute using the AuthenticationSchemes property, like this:
+// [Authorize(AuthenticationSchemes = "Bearer")]
+// This tells ASP.NET Core to use the "Bearer" authentication scheme for that endpoint, which typically corresponds to JWT authentication.
+// You can also specify roles and policies in the [Authorize] attribute to control access based on user roles or custom policies, like this:
+// [Authorize(AuthenticationSchemes = "Bearer", Roles = "Admin, Staff")]
+// This means that the endpoint requires authentication using the "Bearer" scheme and is only accessible to users in the "Admin" or "Staff" roles.
+// Other parameters you can use in the [Authorize] attribute include Policy (for custom authorization policies), and you can also combine multiple schemes and roles as needed. 
+// For example, you can specify multiple authentication schemes like this:
+// [Authorize(AuthenticationSchemes = "Bearer, Cookie", Roles = "Admin, Staff")]
+// 
 
 // Add custom middleware to log requests and responses
 app.UseMiddleware<RequestLoggingMiddleware>();
@@ -425,7 +523,7 @@ app.Run();
 
 
 
-// Program.cs
+//? Program.cs
 //    ↓
 // Builds:
 //    - DI Container
@@ -450,7 +548,7 @@ app.Run();
 
 
 
-// In a .NET web app:
+//? In a .NET web app:
 
 // - Most parts of the application are implemented as classes (controllers, services, middleware, etc.), but .NET also supports other 
 // constructs like interfaces, records, and structs.
@@ -479,26 +577,7 @@ app.Run();
 
 
 
-
-
-
-//TODO Questions to go deep
-// How DI container works internally
-// Request lifecycle deep dive (thread, async, pipeline)
-// Scoped vs Singleton pitfalls (very important in real apps)
-// Threading model(async/await + thread pool)
-// How Kestrel handles concurrent requests
-// How EF manages connection pooling
-
-//TODO To understand:
-// ✔ How .NET handles requests
-// ✔ How DI creates objects
-// ✔ How middleware controls flow
-// ✔ How EF translates LINQ → SQL
-// ✔ How to optimize DB queries
-
-
-// I’ll walk you through a real request lifecycle, including:
+//? I’ll walk you through a real request lifecycle, including:
 
 // object creation
 // memory scope
@@ -767,6 +846,27 @@ app.Run();
 // Same DbContext reused across requests
 // → concurrency issues
 // → data corruption
+
+
+
+
+
+
+
+//TODO Questions to go deep
+// How DI container works internally
+// Request lifecycle deep dive (thread, async, pipeline)
+// Scoped vs Singleton pitfalls (very important in real apps)
+// Threading model(async/await + thread pool)
+// How Kestrel handles concurrent requests
+// How EF manages connection pooling
+
+//TODO To understand:
+// ✔ How .NET handles requests
+// ✔ How DI creates objects
+// ✔ How middleware controls flow
+// ✔ How EF translates LINQ → SQL
+// ✔ How to optimize DB queries
 
 
 
