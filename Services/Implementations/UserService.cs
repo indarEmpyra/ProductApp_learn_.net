@@ -65,6 +65,16 @@ using System.Linq;
 // In .csproj:
 // <ImplicitUsings>enable</ImplicitUsings>
 
+//# In .NET 6 and later, implicit global usings are enabled by default in ASP.NET Core projects. 
+// This means you don't have to explicitly import commonly used namespaces like:
+// - System
+// - System.Collections.Generic
+// - System.Linq
+// - System.Threading.Tasks
+// - Microsoft.AspNetCore.Builder
+// - Microsoft.Extensions.DependencyInjection
+// - Microsoft.Extensions.Hosting
+
 namespace ProductApp.Services.Implementations
 {
   public class UserService : IUserService

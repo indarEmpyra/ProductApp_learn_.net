@@ -258,6 +258,42 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 // Redirect HTTP requests to HTTPS for better security
 
+app.UseStaticFiles();
+
+// Enable CORS middleware to allow cross-origin requests (if needed)
+// app.UseCors("AllowAll"); // Use the CORS policy defined in Program.cs
+// This allows your API to be accessed from different origins (like a frontend app running on a different domain) by applying the specified CORS policy.
+// Custom CORS policies can be defined in Program.cs using builder.Services.AddCors() and then applied here with app.UseCors().
+// app.UseCors(policy =>
+//     policy.AllowAnyOrigin()
+//           .AllowAnyMethod()
+//           .AllowAnyHeader());
+
+
+//# How to enable only certain Ip addresses to access the API using cors?
+// You can create a custom CORS policy that allows requests only from specific IP addresses.
+// Example:
+// builder.Services.AddCors(options =>  
+// {
+//     options.AddPolicy("AllowSpecificIPs", policy =>
+//     {
+//        policy.WithOrigins("http://allowed-ip1", "http://allowed-ip2") // Replace with actual allowed IPs or domains
+//              .AllowAnyMethod()
+//              .AllowAnyHeader();
+//     });
+// });
+
+// 
+
+
+//# How to enable only certain Ip addresses to access the API?
+// You can create a custom middleware to check the incoming request's IP address against a list of allowed IPs and return a 403 Forbidden response if the IP is not allowed.  
+
+
+// If you have a frontend application (like React or Angular) that needs to call your API, you would configure CORS to allow requests from the frontend's origin.
+//   
+
+
 app.UseAuthorization();
 // Enable authorization middleware (if you have any [Authorize] attributes in your controllers)
 // [Authorize(AuthenticationSchemes = "Bearer", Roles = "Admin, Staff, ExternalAPIClient")] 
