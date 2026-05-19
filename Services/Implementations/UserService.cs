@@ -19,7 +19,18 @@ using System.Linq;
 // System.Threading.Tasks -->	Task, Task<T>, async/await support
 
 
-// Without "using System.Collections.Generic;"?
+
+
+
+//# Do we really need to import System.Collections.Generic to use List<T>? or System.Threading.Tasks to use Task<T>?
+// Yes, in a typical .NET project, you need to import the System.Collections.Generic namespace to use List<T> and System.Threading.Tasks to use Task<T>.
+//# But, we are using Task<List<User>> without importing System.Threading.Tasks, and List<User> without importing System.Collections.Generic, how is that possible?
+// This is possible because of implicit global usings, a feature introduced in .NET 6. If your project has implicit 
+// global usings enabled (which is common in new .NET projects), then certain namespaces are automatically included in every file,
+//  allowing you to use types like List<T> and Task<T> without explicitly importing their namespaces in each file.
+
+
+//# Without "using System.Collections.Generic;"?
 
 // This will fail:
 // List<int> numbers = new List<int>();
@@ -35,7 +46,7 @@ using System.Linq;
 // In .NET 6+ you may notice:
 // 👉 You sometimes don’t need using System
 
-// Why?
+//# Why?
 // Implicit global usings
 
 // Your project might auto-include:
@@ -50,7 +61,7 @@ using System.Linq;
 //enabled in the .csproj file.
 // This is a feature that allows you to avoid having to write common using directives in every file
 
-// Where is this defined?
+//# Where is this defined?
 // In .csproj:
 // <ImplicitUsings>enable</ImplicitUsings>
 

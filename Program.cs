@@ -42,6 +42,21 @@ var builder = WebApplication.CreateBuilder(args);
 //? Where does the WebApplicationBuilder class come from? 
 // It is part of the Microsoft.AspNetCore.Builder namespace, which is included in the Microsoft.AspNetCore.App framework.
 
+//# why did we not have to add "using Microsoft.AspNetCore.Builder;" at the top of Program.cs to use WebApplicationBuilder?
+// In .NET 6 and later, the Microsoft.AspNetCore.App framework is included by default in ASP.NET Core applications, 
+// and it provides implicit global usings for commonly used namespaces, including Microsoft.AspNetCore.Builder.
+
+//# What all we don't have to explicitly import because of implicit global usings? 
+// In .NET 6 and later, implicit global usings are enabled by default in ASP.NET Core projects. 
+// This means you don't have to explicitly import commonly used namespaces like:
+// - System
+// - System.Collections.Generic
+// - System.Linq
+// - System.Threading.Tasks
+// - Microsoft.AspNetCore.Builder
+// - Microsoft.Extensions.DependencyInjection
+// - Microsoft.Extensions.Hosting
+
 // This line initializes a new instance of the WebApplicationBuilder class, which is used to configure and build the web application.
 // The builder provides access to services, configuration, and other settings needed to set up the application. 
 // It takes command-line arguments (args) which can be used for configuration purposes 
