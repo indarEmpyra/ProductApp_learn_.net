@@ -35,7 +35,7 @@ using ProductApp.Middleware;
 // app.UseMiddleware<AuthenticationMiddleware>();
 
 
-// / ********************************************************/
+// / ******************************************************** /
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -57,17 +57,34 @@ var builder = WebApplication.CreateBuilder(args);
 // - Microsoft.Extensions.DependencyInjection
 // - Microsoft.Extensions.Hosting
 
+
+//# var builder = WebApplication.CreateBuilder(args);
 // This line initializes a new instance of the WebApplicationBuilder class, which is used to configure and build the web application.
 // The builder provides access to services, configuration, and other settings needed to set up the application. 
 // It takes command-line arguments (args) which can be used for configuration purposes 
 // (e.g., setting environment variables, specifying URLs, etc.). 
+
+//? How to provide environment variables and command-line arguments when running the application?
+// You can provide environment variables and command-line arguments when running the application using the dotnet run command in the terminal.
+// For example, to set an environment variable and provide a command-line argument, you can run:
+// dotnet run --environment "Development" --urls "http://localhost:5000"  
+
+//? What all can be passed as command-line arguments?
+// You can pass various command-line arguments to configure your ASP.NET Core application, such as:
+// --environment: Sets the hosting environment (e.g., Development, Staging, Production).
+// --urls: Specifies the URLs the application should listen on (e.g., http://localhost:5000).
+// --launch-profile: Specifies the launch profile to use from launchSettings.json (e.g., dev, https).
+// --configuration: Overrides configuration values (e.g., --configuration "MySetting=Value").
+
+// You can also define custom command-line arguments and access them in your application using 
+// builder.Configuration.GetCommandLineArgs() or builder.Configuration.GetValue<string>("MyCustomArg"). 
 
 // And, how to access the configuration/args values in the builder? You can access configuration values using builder.Configuration, 
 // and command-line arguments can be accessed through builder.Configuration.GetCommandLineArgs() or directly from the args parameter if needed.
 // The builder is the starting point for configuring the application's services and middleware before building and running the app.
 
 
-//# builder.services is the IServiceCollection where you register services for dependency injection.
+//? builder.services is the IServiceCollection where you register services for dependency injection.
 // This is where you add services that your application will use, such as controllers, database contexts, custom services, etc.
 
 // is AddEndpointsApiExplorer pre-defined method in services class? 
@@ -79,7 +96,8 @@ builder.Services.AddEndpointsApiExplorer();
 // generate accurate documentation. Even if you're using controllers, 
 // it's a good idea to include this to ensure all endpoints are documented correctly.
 
-// Can we use AddEndpointsApiExplorer() without using minimal APIs? Yes, you can use AddEndpointsApiExplorer() even if you're not using minimal APIs.
+// Can we use AddEndpointsApiExplorer() without using minimal APIs? 
+//Yes, you can use AddEndpointsApiExplorer() even if you're not using minimal APIs.
 // This method is part of the ASP.NET Core framework and is used to enable API endpoint discovery and documentation generation,
 // which is beneficial for both minimal APIs and controller-based APIs. It helps tools like Swagger to generate accurate API 
 // documentation regardless of the approach you take to define your endpoints.
@@ -88,7 +106,7 @@ builder.Services.AddEndpointsApiExplorer();
 // Swagger is a tool for generating interactive API documentation, and it can be used with both minimal
 // APIs and traditional controller-based APIs. To add Swagger to a controller-based API, you would typically use the Swashbuckle.AspNetCore package,
 // which provides the AddSwaggerGen() and UseSwaggerUI() methods to set up Swagger in your application. 
-//You can follow the same steps to configure Swagger in a controller-based API as you would with a minimal API, 
+// You can follow the same steps to configure Swagger in a controller-based API as you would with a minimal API, 
 // and it will work seamlessly to generate documentation for your API endpoints defined in controllers.
 
 // #How to add this only for development environment? 
@@ -145,18 +163,45 @@ builder.Services.AddControllers();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IUserService, UserService>();
 
+// ? What this line does:
+// It tells ASP.NET's built-in IoC container: "Whenever something asks for IProductService, create and give it a ProductService."
+// IOC container will manage the lifecycle of ProductService instances based on the specified lifetime (scoped in this case),
+// and it will automatically resolve and inject the dependencies (like AppDbContext) when creating a ProductService instance.
+
 // AddScoped → A new instance of the service will be created for each HTTP request and shared within that request.
 // This is the most common lifetime for services that interact with the database (like your ProductService and UserService) 
 // because it ensures that each request gets its own instance of the service and its dependencies (like DbContext), 
 // which helps to manage resources and avoid issues with shared state across requests.
 
-// Is this a pre-defined way to register services in ASP.NET Core? 
+//# Why is this important for each request to have their own instance of the service and its dependencies?
+// This is important because it prevents issues with shared state and concurrency that can arise when using singleton services for things like database contexts.
+
+//# If request is GET user(id) and we create all user services for that request, won't that be a waste of resources?
+// Not necessarily, because the scoped lifetime ensures that each request gets its own instance of the service and its dependencies.
+// This means that the resources are only used for the duration of the request and are released afterwards, which is efficient and safe.
+
+//# Is this a pre-defined way to register services in ASP.NET Core? 
 // Yes, AddScoped is one of the built-in methods provided by ASP.NET Core's dependency injection system to register services with a specific lifetime.
 // And, is this constructor injection? 
 // Yes, this is an example of constructor injection, where the dependencies (IProductService and IUserService) are injected into the controllers
 // or other services that require them through their constructors.
 
 // If we were to inject a service without registering it in the DI container, we would get an error at runtime when the application tries to resolve that service.
+
+// ? What is Dependency Injection (DI)?
+
+// How to understand classes dependencies in lay man language?
+// Dependencies are the other classes or services that a class relies on to perform its functions.
+// For example, a ProductService might depend on an AppDbContext to access the database and perform CRUD operations on products, 
+// and a ProductController might depend on IProductService to handle business logic related to products.
+// Much like how a car depends on an engine to run, a class depends on its dependencies to function properly.  
+
+// Instead of a class creating its own dependencies, they are provided from outside. 
+// Compared to tightly coupled code where a class creates its own dependencies, DI promotes loose coupling and makes
+// it easier to test your application by allowing you to inject mock implementations of your services during testing.  
+// ASP.NET sees IProductService in the constructor and automatically resolves and injects a ProductService instance.
+// Why use the Interface (IProductService) instead of ProductService directly?
+// The controller depends on the abstraction, not the implementation. This means you can swap implementations without touching the controller:
 
 // If we were to inject a service as a singleton instead of scoped, we would have a single instance of that service shared across all requests, 
 // which could lead to issues with shared state and concurrency, especially if the service 
@@ -169,19 +214,10 @@ builder.Services.AddScoped<IUserService, UserService>();
 // builder.Services.AddTransient<IProductService, ProductService>();
 // Example of a transient service: a service that generates random values or performs simple calculations without maintaining any state.
 
-
-// ? What this line does:
-// It tells ASP.NET's built-in IoC container: "Whenever something asks for IProductService, create and give it a ProductService."
-// IOC container will manage the lifecycle of ProductService instances based on the specified lifetime (scoped in this case),
-// and it will automatically resolve and inject the dependencies (like AppDbContext) when creating a ProductService instance.
-
-// ? What is Dependency Injection (DI)?
-// Instead of a class creating its own dependencies, they are provided from outside. 
-// Compared to tightly coupled code where a class creates its own dependencies, DI promotes loose coupling and makes
-// it easier to test your application by allowing you to inject mock implementations of your services during testing.  
-// ASP.NET sees IProductService in the constructor and automatically resolves and injects a ProductService instance.
-// Why use the Interface (IProductService) instead of ProductService directly?
-// The controller depends on the abstraction, not the implementation. This means you can swap implementations without touching the controller:
+// Isn't Transient and Scoped same then?
+// No, they are different in terms of their lifetimes and how they manage instances:
+// - Scoped: A new instance of the service is created for each HTTP request and shared within that request.
+// - Transient: A new instance of the service is created every time it is requested, regardless of the HTTP request.
 
 // ? What does AddScoped mean?
 // It controls the lifetime of the created instance:
@@ -260,7 +296,7 @@ app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 
-// Enable CORS middleware to allow cross-origin requests (if needed)
+//# Enable CORS middleware to allow cross-origin requests (if needed)
 // app.UseCors("AllowAll"); // Use the CORS policy defined in Program.cs
 // This allows your API to be accessed from different origins (like a frontend app running on a different domain) by applying the specified CORS policy.
 // Custom CORS policies can be defined in Program.cs using builder.Services.AddCors() and then applied here with app.UseCors().
@@ -321,11 +357,66 @@ app.UseMiddleware<RequestLoggingMiddleware>();
 app.MapControllers();
 // Map controller routes (e.g., /api/product) to the corresponding controller actions based on attributes like [HttpGet], [HttpPost], etc.
 
+
+app.Lifetime.ApplicationStarted.Register(() =>
+{
+  var logger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
+  var urls = app.Urls.Any() ? string.Join(", ", app.Urls) : "No URLs bound";
+
+  // logger.LogInformation("Application is running on: {Urls}", urls);
+  Console.WriteLine($"Application is running on: {urls}");
+});
+// This registers a callback to log the URLs the application is listening on when the application starts.
+// app.Services.GetRequiredService<ILoggerFactory>() retrieves the ILoggerFactory from the dependency injection container,
+// and CreateLogger("Startup") creates a logger instance with the category "Startup" for logging purposes.
+// app.Urls contains the URLs that the application is configured to listen on, and we log them when the 
+// application starts to confirm that it's running and to know which URLs are active.
+// 
+
 app.Run();
 // Start the application and listen for incoming HTTP requests. 
 // The app will run until you stop it (e.g., Ctrl+C in the terminal).
 
+// Most useful app properties:
 
+// app.Urls
+// Type: ICollection<string>
+// Contains listening addresses like http://localhost:5186, https://localhost:7199
+
+// app.Environment
+// Type: IWebHostEnvironment
+// Use:
+// app.Environment.EnvironmentName
+// app.Environment.IsDevelopment()
+// app.Environment.IsProduction()
+
+// app.Configuration
+// Type: IConfiguration
+// Read config values and appsettings values
+
+// app.Services
+// Type: IServiceProvider
+// Resolve DI services
+
+// app.Logger
+// Type: ILogger
+// App-level logging
+
+// app.Lifetime
+// Type: IHostApplicationLifetime
+// Hooks:
+// ApplicationStarted
+// ApplicationStopping
+// ApplicationStopped
+// How to get port:
+
+// Parse from each entry in app.Urls
+// Example concept: new Uri(url).Port
+// So Node-like mapping is:
+
+// Node app.get("env") -> ASP.NET app.Environment.EnvironmentName
+// Node server.address().port -> ASP.NET parse port from app.Urls
+// Node listen host/port -> ASP.NET app.Urls (or launch settings / --urls)
 
 
 
@@ -514,6 +605,15 @@ app.Run();
 
 // 2. Copy the published files (including the DLLs) to the IIS server.
 // Do we need to copy the source code to the IIS server? No, you only need to copy the published files (including the DLLs) to the IIS server.
+// What files/folders do we need to copy to the IIS server?
+// You need to copy the contents of the publish output directory, which typically includes:
+// - The compiled DLLs (your application and its dependencies)
+// - The web.config file (automatically generated during publish)
+// - Any static assets (like images, CSS, JavaScript files) required by your application
+// // You need to copy the files generated by the dotnet publish command, which include the compiled DLLs, configuration files (like web.config), 
+// and any static assets required by your application. You do not need to copy the source code files (.cs) to the IIS server, 
+// as the application will run based on the compiled assemblies (DLLs) and configuration files.
+
 
 // 3. Set up an IIS website or application pointing to the directory where you copied the published files.
 // 4. Configure the application pool to use the correct .NET runtime version.
@@ -874,6 +974,7 @@ app.Run();
 // REQUEST END
 //    ↓
 // Dispose all scoped objects
+
 // 🧠 CRITICAL INSIGHTS (Architect Level)
 // 🔥 1. Scoped Lifetime = Per Request
 // One request → one DbContext → one Service instance
@@ -901,10 +1002,16 @@ app.Run();
 
 
 
+// .csproj - project file that defines dependencies, target framework, build settings, etc. (similar to package.json but XML-based)
+// appSettings.json - connection strings, API keys, logging config, feature flags, etc. (non-sensitive config)
+// appSettings.Development.json - development-specific config (but still not ideal for secrets)
+// Properties/launchSettings.json- Used only for local development i.e ports, environment
 
 
 
-//TODO Questions to go deep
+
+
+//TODO: Questions to go deep
 // How DI container works internally
 // Request lifecycle deep dive (thread, async, pipeline)
 // Scoped vs Singleton pitfalls (very important in real apps)
@@ -912,7 +1019,7 @@ app.Run();
 // How Kestrel handles concurrent requests
 // How EF manages connection pooling
 
-//TODO To understand:
+//TODO: To understand
 // ✔ How .NET handles requests
 // ✔ How DI creates objects
 // ✔ How middleware controls flow
@@ -920,8 +1027,16 @@ app.Run();
 // ✔ How to optimize DB queries
 
 
+// 1️⃣ Dependency Injection (DI container)
 
+// Why .NET uses DI everywhere.
 
+// 2️⃣ ASP.NET Request Pipeline
 
+// This explains:
 
+// app.UseAuthentication()
+// app.UseAuthorization()
+// 3️⃣ Entity Framework + DbContext
 
+// How database connection works.

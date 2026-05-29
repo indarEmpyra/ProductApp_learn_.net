@@ -1,10 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using NuGet.Protocol.Core.Types;
 
+//# using Microsoft.EntityFrameworkCore;
 // if missing, install it [dotnet add package Microsoft.EntityFrameworkCore] 
 // is this a global installation? No, you need to run this command in the project directory where your .csproj file is located.
 // This is required to use the DbContext and related EF Core functionality in your application.
+
 using ProductApp.Models;
+// We need this line to access our Product and User models, which are likely defined in the ProductApp.Models namespace.
 
 namespace ProductApp.Data
 
@@ -44,6 +47,8 @@ namespace ProductApp.Data
 // ? If I only register AppDbContext in Program.cs, how does my service know about TaskItem or tables?
 // DbContext is the bridge between your code and database schema. When you define a DbSet<T> in your DbContext, 
 // EF Core uses that to understand how to map your C# classes to database tables.  
+// public DbSet<Product> Products { get; set; }
+// public DbSet<User> Users { get; set; }
 
 
 

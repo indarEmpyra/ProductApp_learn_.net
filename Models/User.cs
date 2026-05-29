@@ -11,9 +11,18 @@ namespace ProductApp.Models
     [Key]
     public int Id { get; set; }
 
+    // get means this property can be read, set means it can be assigned a value.
+    // if we don't pass set, it becomes read-only and we can only assign a value through the constructor or within the class itself.
+
     [Required]
     [MaxLength(50)]
     public string FirstName { get; set; }
+
+    //# Why does Eslint throw this error: Non-nullable property 'FirstName' must contain a non-null value when exiting constructor. 
+    // Consider adding the 'required' modifier or declaring the property as nullable.
+    // It's non-nullable because we want users to always provide a first name when creating a new user. If we make it nullable, 
+    // then it would allow users to create a user without providing a first name, which might not be desirable in our application. 
+    // By marking it as required, we ensure that every user has a first name, which can be important for identification and communication purposes.
 
     [MaxLength(50)]
     public string LastName { get; set; }
@@ -30,12 +39,12 @@ namespace ProductApp.Models
 
     [Required]
     [ForeignKey("RoleId")]
+    public int RoleId { get; set; }
     // How will we know which role a user belongs to? We can add a RoleId foreign key property to the User class, 
     // and then use the [ForeignKey] attribute to specify that it references the Role entity. 
     // This way, we can establish a relationship between users and roles in our database.
 
     // Without mentioning table name in the [ForeignKey] attribute, EF will look for a table named "Role" by convention.
-    public int RoleId { get; set; }
 
     public bool IsActive { get; set; } = true;
 
@@ -48,8 +57,8 @@ namespace ProductApp.Models
     // Foreign Key
     // public int RoleId { get; set; }
 
-    [ForeignKey("RoleId")]
-    public Role Role { get; set; }
+    // [ForeignKey("RoleId")]
+    // public Role Role { get; set; }
 
     // public int Id { get; set; }
     // public required string FirstName { get; set; }
@@ -93,23 +102,106 @@ namespace ProductApp.Models
 // ✔ Concurrency handling
 
 
+//? How to change the casing of the Column name from PascalCase to camelCase while sending data to the client without changing the property name in the model class?
+// You can use the [JsonPropertyName] attribute from the System.Text.Json.Serialization namespace to specify the name of the property when it is serialized to JSON.
+// For example, if you have a property named FirstName in your User class, but you want it to be serialized as firstName in the JSON response, 
+// you can decorate the property with the [JsonPropertyName] attribute like this:
+
+// [JsonPropertyName("firstName")]  
+// public string FirstName { get; set; }
+
+// This way, when the User object is serialized to JSON, the FirstName property will be represented as firstName in the JSON output, 
+// while still maintaining the PascalCase naming convention in your C# model class. 
+// This allows you to have different naming conventions for your C# code and your JSON API responses without having to change the property names in your model classes.
+
+//# Would the same work for creating object as well when client sends the request payload with camelCase properties?
+// Yes, the [JsonPropertyName] attribute works for both serialization and deserialization.
 
 
-// Navigation properties
+//? How to change ColumnName in the database without changing the property name in the model class?
+// You can use the [Column] attribute from the System.ComponentModel.DataAnnotations.Schema namespace to specify the column 
+// name in the database for a property in your model class.
+// For example, if you have a property named FirstName in your User class, but you want it to be stored in a column named first_name in the database, 
+// you can decorate the property with the [Column] attribute like this:  
+// [Column("first_name")]
+// public string FirstName { get; set; }
+// This way, the FirstName property in your model class will be mapped to the first_name column in the database when using Entity Framework Core.
+
+
+
+
+
+
 // ?What are navigation properties? 
 // They are properties that represent the relationships between entities in an ORM (Object-Relational Mapping) framework like Entity Framework. 
 // They allow you to navigate from one entity to related entities. 
 // For example, if a User belongs to an Organization, you can have a navigation property in the User class that references the Organization entity.
+
+// public Organization? Organization { get; set; }
+
 // This makes it easier to work with related data without having to manually query the database for related records.
+
 
 // ?How do I define navigation properties in my entity classes?
 // You can define navigation properties by adding properties to your entity classes that reference other entity types. 
 // For example, in the User class, you can add a navigation property for the Organization it belongs to, like this:
+
 // public Organization? Organization { get; set; }
+
 // This indicates that each User is associated with one Organization.
 // You can also define navigation properties for collections of related entities.
 // For example, if a User can create multiple Jobs, you can add a collection navigation property like this:
+
 // public ICollection<Job> JobsCreated { get; set; } = new List<Job>();
+
+//? Can we really store a collection of related entities directly in our model class? 
+// Yes, this is a common practice in Entity Framework Core to represent one-to-many relationships. 
+// The ICollection<Job> JobsCreated property allows us to easily access all the jobs created by a user without needing to write additional queries to the database. 
+// EF Core will automatically manage the relationships and load the related data when needed, making it easier to work with related entities in your application.
+
+// So, when user creates a new job, we can add that job to the JobsCreated collection of the user, and EF Core will handle the 
+// underlying database operations to maintain the relationship between the User and Job entities.
+
+//# Confusion?
+// It might seem strange at first to have a collection of related entities directly in your model class, but this is a powerful feature of ORMs like Entity Framework Core. 
+// It allows you to work with related data in a more intuitive way, without having to manually query the database for related records.
+// When you access the JobsCreated property of a User, EF Core will automatically load the related Job entities from the database, 
+// allowing you to work with them as if they were part of the User object.
+// This abstraction makes it easier to manage complex relationships between entities in your application, and allows you to focus on your business
+// logic rather than the underlying database operations.  
+
+// Without this EF. In general, You store all created jobs in one table having userId as foreign key and then you have to write a query to get all jobs created by a user.
+// With this, you can directly access the JobsCreated collection from the User entity, and EF will handle the database queries to retrieve the related Job entities for you. 
+// This makes your code cleaner and more intuitive when working with related data.  
+
+
+//# Does creating a job automatically add the job to the user's JobsCreated collection?
+// No, EF Core does not automatically add a new job to the user's JobsCreated collection when you create a new job.
+// You would need to do something like this in your code when creating a new job for a user:
+// var user = _dbContext.Users.FirstOrDefault(u => u.Id == userId);
+// var newJob = new Job { Title = "New Job", UserId = user.Id };
+// _dbContext.Jobs.Add(newJob);
+// user.JobsCreated.Add(newJob); // This line is important to maintain the relationship in the context
+// _dbContext.SaveChanges();
+// This way, you are explicitly adding the new job to the JobsCreated collection of the user, and EF Core will handle the database operations
+// to maintain the relationship between the User and Job entities.
+
+// But, JobCreated is an ICollection<Job>, so does Add(newJob) add the object to the collection and also update the database?
+// Yes, when you call user.JobsCreated.Add(newJob), it adds the new job to the JobsCreated collection of the user in memory.
+
+//# Does _dbContext.SaveChanges() save all changes made to the context, including adding the new job to the JobsCreated collection and updating the database accordingly?
+// Yes, when you call _dbContext.SaveChanges(), it saves all changes made to the context, creation of Job and adding the new job to the User's
+// JobsCreated collection and updating the database accordingly.
+// EF Core tracks changes to your entities in the context, and when you call SaveChanges(), it generates the necessary SQL commands to 
+// insert, update, or delete records in the database based on the changes you made to your entities.
+// So, in the example we discussed, when you add a new job to the JobsCreated collection and then call SaveChanges(), EF Core will insert
+// the new job into the Jobs table in the database and also update the relationship between the User and Job entities as needed.  
+
+// Essentially, _dbContext gives you access to all tables in your database, and you can perform operations on those tables through the context. 
+// When you call SaveChanges(), it ensures that all changes made to the entities in the context are persisted to the database 
+// in a single transaction, maintaining data integrity and consistency.
+
+
 
 //? Does navigation properties mean Foreign key relationship in database?
 // Navigation properties represent the relationships between entities in your code, but they do not automatically create foreign key relationships in the database.
@@ -120,27 +212,104 @@ namespace ProductApp.Models
 // Alternatively, you can use the fluent API in the DbContext's OnModelCreating method to configure the relationships using the HasOne and WithMany methods.
 
 
-// ?How do I specify foreign key relationships in Entity Framework Core?
+//? How do I specify foreign key relationships in Entity Framework Core?
 // You can specify foreign key relationships using data annotations or the fluent API.
 // Using data annotations, you can use the [ForeignKey] attribute on the foreign key property to indicate which navigation property it relates to.
 // For example, if you have an OrganizationId property in the User class that is a foreign key to the Organization entity, 
+
 // you can decorate it with [ForeignKey("Organization")] to indicate that it is related to the Organization navigation property.
 // Alternatively, you can use the fluent API in the DbContext's OnModelCreating method to configure the relationships using the HasOne and WithMany methods.  
 
 // ?How to use these navigation in services and controllers?
 // In your services and controllers, you can use the navigation properties to access related data.
 // For example, if you have a User entity and you want to access the Organization it belongs to, you can use the Organization navigation property like this:
-// var user = _dbContext.Users.Include(u => u.Organization).FirstOrDefault(u => u.Id == userId);
+
+//# var user = _dbContext.Users.Include(u => u.Organization).FirstOrDefault(u => u.Id == userId);
 // This will load the User along with its related Organization data in a single query, 
 // allowing you to access the Organization details directly from the User entity without needing to make a separate query to the database.  
+
+//# Does this respect GetOrganization DTO or if we want to return specific values, how to do that?
+// If you want to return specific values from the related Organization entity, you can use projection in your query to select only the properties you need. 
+// For example, if you have a GetOrganizationDto that contains only the Name and Address of the Organization, you can do something like this:  
+// var userWithOrganization = _dbContext.Users
+//     .Where(u => u.Id == userId)
+//     .Select(u => new GetUserWithOrganizationDto
+//     {
+//         Id = u.Id,
+//         FirstName = u.FirstName,
+//         LastName = u.LastName,
+//         Email = u.Email,
+//         Organization = new GetOrganizationDto
+//         {
+//             Name = u.Organization.Name,
+//             Address = u.Organization.Address
+//         }
+//     })
+//     .FirstOrDefault();
+
+
+// Is this possible without using a DTO? How to customize what values to return for user and their organization too?
+// Yes, you can use anonymous types or projection to select specific properties without creating a DTO.
+// For example:
+// var userWithOrganization = _dbContext.Users
+//     .Where(u => u.Id == userId)
+//     .Select(u => new
+//     {
+//         u.Id,
+//         u.FirstName,
+//         u.LastName,
+//         u.Email,
+//         Organization = new
+//         {
+//             u.Organization.Name,
+//             u.Organization.Address
+//         }
+//     })
+//     .FirstOrDefault();
+
+// the difference between using a DTO and without it is that with a DTO, you have a defined class that represents the structure of the data you want to return,
+// which can be reused across your application and provides better type safety.
+// Without a DTO, you are using an anonymous type that is defined inline in your query,
+// which can be less maintainable and harder to manage as your application grows, especially if you need to return the same structure of data in multiple places.
+
+
+//# confusion?
+// I have seen responses of List, GET and POST of an entity with different key in List and GET/POST. 
+// For example, in List, we return Id, Name, Email but in GET/POST we return UserId, FullName, EmailAddress. 
+// But, we can have just one key for each property in the model class, so how do we return different keys in different responses?
+// You can achieve this by using DTOs (Data Transfer Objects) to shape the data you want to return in your API responses.
+// For example, you can have a UserDto that contains the properties you want to return in the List response (e.g., Id, Name, Email), and a GetUserDto that contains the properties you want to return in the GET/POST responses (e.g., UserId, FullName, EmailAddress).
+// Then, in your controller actions, you can map your User entities to the appropriate DTOs before returning the response.
+// For example:
+// var users = _dbContext.Users.Select(u => new UserDto
+// {  
+//     Id = u.Id,
+//     Name = $"{u.FirstName} {u.LastName}",
+//     Email = u.Email
+// }).ToList();
+// return Ok(users);
+
+// Isn't this a bad practice to have different keys for the same property in different responses? i.e Email, EmailAddress, EmailId etc.?
+// It can be confusing to have different keys for the same property in different responses, and it is generally recommended to maintain consistency in your API responses.
+// However, there may be cases where you want to return different keys for the same property in different responses for specific reasons, such as to provide 
+// more context or to follow a certain naming convention in your API.
+// If you do choose to return different keys for the same property in different responses, it is important to document this clearly in your API 
+// documentation so that consumers of your API understand the differences and can use the correct keys when making requests or processing responses. 
+
+
+
+//# You can also use navigation properties to create new related entities. For example, if you want to create a new Job for a User, you can do something like this:
+// var user = _dbContext.Users.FirstOrDefault(u => u.Id == userId);
+// var newJob = new Job { Title = "New Job", UserId = user.Id };
+// _dbContext.Jobs.Add(newJob);
 
 
 //? Why use navigation properties instead of just foreign key IDs?
 // Navigation properties provide a more intuitive and object-oriented way to work with related data in your code.
 // They allow you to access related entities directly through the navigation property, which can simplify your code and reduce the need 
-//for manual queries to retrieve related data.
+// for manual queries to retrieve related data.
 // For example, instead of having to query the database to get the Organization details for a User using the OrganizationId foreign key, 
-//you can simply access the Organization navigation property directly from the User entity.
+// you can simply access the Organization navigation property directly from the User entity.
 // This can make your code cleaner and easier to read, as it abstracts away the underlying database queries and allows you to work with your data in a more natural way.
 
 
@@ -225,8 +394,6 @@ namespace ProductApp.Models
 
 
 
-
-
 //? model attributes
 // [Required] → property must have a value (not null or empty)
 // [MaxLength(100)] → string property cannot exceed 100 characters
@@ -249,8 +416,10 @@ namespace ProductApp.Models
 
 
 // ? This class represents a product entity in the database. It has properties for Id, Name, Description, Price, Quantity, and CreatedDate.
-// When used with Entity Framework Core, it will automatically create a database table based on this class. The Id property will be the primary key of the table, and the other properties will be columns in the table.
-// This allows us to easily perform CRUD operations on products in our database using Entity Framework Core. Migrations will help us keep our database schema in sync with our model classes as we make changes to them over time.  
+// When used with Entity Framework Core, it will automatically create a database table based on this class. The Id property will be the primary 
+// key of the table, and the other properties will be columns in the table.
+// This allows us to easily perform CRUD operations on products in our database using Entity Framework Core. Migrations will help us keep our database schema 
+// in sync with our model classes as we make changes to them over time.  
 
 
 
@@ -313,7 +482,7 @@ namespace ProductApp.Models
 /// Product (Domain Model) → ProductDto (Data Transfer Object) → JSON/API Response
 
 
-// ? Scaffolding a model in ASP.NET Core using Entity Framework Core:
+//? Scaffolding a model in ASP.NET Core using Entity Framework Core:
 
 //? What's scaffolding?
 // Scaffolding is a code generation technique that allows you to quickly create boilerplate code for common tasks, such as CRUD operations, 

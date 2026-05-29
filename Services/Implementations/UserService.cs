@@ -91,6 +91,97 @@ namespace ProductApp.Services.Implementations
       return await _context.Users.ToListAsync();
     }
 
+
+    //# When used with Entity Framework, LINQ converts your query into SQL automatically.
+    // var users = dbContext.Users
+    //   .Where(u => u.Age > 25)
+    //     .Select(u => new { u.Name, u.Email })
+    //     .ToList();
+
+    // Generated SQL:
+
+    // SELECT Name, Email
+    // FROM Users
+    // WHERE Age > 25
+
+
+
+    //# Very Important Concept: Deferred Execution
+
+    // LINQ queries do not run immediately.
+    // Example:
+    // var query = users.Where(u => u.Age > 25);
+    // Nothing executes yet.
+    // Execution happens when you call:
+
+    // ToList()
+    // First()
+    // Count()
+    // Any()
+
+    // Example:
+    // var result = users
+    //     .Where(u => u.Age > 25)
+    //     .ToList();
+
+    // Now the query executes.
+    // This is very important for performance.
+
+
+    //# LINQ with Join (SQL Equivalent)
+
+    // var result =
+    //     from order in db.Orders
+    //     join user in db.Users
+    //     on order.UserId equals user.Id
+    //     select new
+    //     {
+    //         user.Name,
+    //         order.Amount
+    //     };
+
+    // SQL generated:
+
+    // SELECT Users.Name, Orders.Amount
+    // FROM Orders
+    // JOIN Users ON Orders.UserId = Users.Id
+
+
+    //# LINQ Syntax Types
+    // There are two styles.
+
+    // 1️⃣ Method syntax (MOST COMMON)
+    // var users = db.Users
+    //     .Where(u => u.Age > 25)
+    //     .Select(u => u.Name);
+
+    // 2️⃣ Query syntax (SQL-like)
+    // var users =
+    //     from u in db.Users
+    //     where u.Age > 25
+    //     select u.Name;
+
+    //# When LINQ Can Be Dangerous
+
+    // If used wrongly:
+
+    // var users = db.Users.ToList();
+
+    // var result = users.Where(u => u.Age > 25);
+
+    // Problem:
+    // Loads entire table into memory
+    // Then filters in memory — very inefficient for large tables
+
+    // Correct:
+
+    // var users = db.Users
+    //     .Where(u => u.Age > 25)
+    //     .ToList();
+
+    // Query runs in database.
+
+
     public async Task<User?> GetUserByIdAsync(int id)
     {
       return await _context.Users.FindAsync(id);

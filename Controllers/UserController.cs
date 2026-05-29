@@ -71,6 +71,38 @@ namespace ProductApp.Controllers
   //         return StatusCode(statusCode, response);
   //     }
 
+  //# how to use ApiResponse and ApiError in UserController:
+  // public class UserController : ApiControllerBase
+  // {
+  //     [HttpGet("/users")]
+  //     public async Task<IActionResult> GetAllUsers()
+  //     {
+  //        try {
+  //          var users = await _userService.GetAllUsersAsync();
+  //          var response = users.ToUserResponses();
+  //          return ApiResponse(response);
+  //         }
+  //        catch (Exception ex) {
+  //            return ApiError("An error occurred while retrieving users: " + ex.Message);
+  //         }
+  //     }
+
+  //# if we don't define ApiResponse and ApiError in a base controller then we will have tgo handle response formatting manually, like this:
+  // public class UserController : ControllerBase
+  // {
+  //    [HttpGet("/users")]
+  //    public async Task<IActionResult> GetAllUsers()
+  //    {
+  //        try {
+  //          var users = await _userService.GetAllUsersAsync();
+  //          var response = users.ToUserResponses();
+  //          return Ok(new ApiResponse { Success = true, Message = "Users retrieved successfully", Data = response });
+  //         }
+  //        catch (Exception ex) {
+  //            return StatusCode(500, new ApiResponse { Success = false, Message = "An error occurred while retrieving users: " + ex.Message, Data = null });
+  //         }
+  //     }
+
 
 
   {
