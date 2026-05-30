@@ -24,6 +24,15 @@
 //   }
 // }
 
+//# Modifiers:
+// private --> Only within the same class or struct.
+// private protected --> Same class, or derived classes only inside the same assembly.
+// protected --> Same class, or any derived class (even in other assemblies).
+// internal --> Anywhere within the same compiled assembly (project).
+// protected internal --> Same assembly, plus any derived class regardless of assembly location.
+// public --> Completely unrestricted across all classes and assemblies.
+// readonly --> Can only be assigned in the declaration or in the constructor of the class. It cannot be modified elsewhere.
+
 
 //? Interfaces?
 // Interfaces are contracts that define a set of methods and properties that a class must implement.
@@ -46,11 +55,8 @@
 
 
 // What is ITaskService?
-
 // It is an interface.
-
 // Example:
-
 // public interface ITaskService
 // {
 //     Task<List<Task>> GetTasks();
@@ -75,15 +81,11 @@
 // Break this into parts.
 
 // public
-
 // Method is accessible outside the class.
 
 // IEnumerable<string>
-
 // This is the return type.
-
 // Meaning:
-
 // a collection of strings
 
 // Examples:
@@ -184,3 +186,117 @@
 // For example, you might define a delegate called "EventHandler" that takes an object sender and EventArgs as parameters.
 // You can then use this delegate to handle events in your application, such as a button click event in a user interface. 
 // By using delegates, you can decouple the event handling logic from the event source, allowing for more modular and maintainable code.   
+
+
+/***************************************************************************/
+
+
+//? Layers in .Net Application
+
+//# Controller Layer (API Endpoints)
+// [ApiController]
+// [Route("tasks")]
+// public class TaskController : ControllerBase
+// {
+//     private readonly ITaskService _taskService;
+
+//     public TaskController(ITaskService taskService)
+//     {
+//         _taskService = taskService;
+//     }
+
+//     [HttpGet]
+//     public async Task<IActionResult> GetTasks()
+//     {
+//         var tasks = await _taskService.GetTasks();
+//         return Ok(tasks);
+//     }
+// }
+
+//# Service Layer (Business Logic)
+// public class TaskService : ITaskService
+// {
+//     private readonly ITaskRepository _repo;
+
+//     public TaskService(ITaskRepository repo)
+//     {
+//         _repo = repo;
+//     }
+
+//     public async Task<List<Task>> GetTasks()
+//     {
+//         return await _repo.GetAll();
+//     }
+// }
+
+
+//# Repository Layer (Data Access)
+// public class TaskRepository : ITaskRepository
+// {
+//     private readonly AppDbContext _context;
+
+//     public TaskRepository(AppDbContext context)
+//     {
+//         _context = context;
+//     }
+
+//     public async Task<List<Task>> GetAll()
+//     {
+//         return await _context.Tasks.ToListAsync();
+//     }
+// }
+
+//# Entity (Database Model)
+// public class Task
+// {
+//     public int Id { get; set; }
+//     public string Title { get; set; }
+//     public bool IsCompleted { get; set; }
+// }
+
+
+// Why.NET Uses Interfaces Everywhere
+
+// You’ll notice:
+
+// ITaskService
+// ITaskRepository
+
+// Example:
+
+// ITaskService
+// TaskService
+
+// Why?
+
+// Because Dependency Injection container uses interfaces.
+
+//# But Modern .NET Has a Twist
+
+// Many teams skip the repository layer when using Entity Framework.
+// Instead they do:
+
+// Controller
+//    ↓
+// Service
+//    ↓
+// DbContext
+
+// Because EF already acts like a repository + unit of work.
+
+// Example:
+
+// public class TaskService
+// {
+//   private readonly AppDbContext _context;
+
+//   public TaskService(AppDbContext context)
+//   {
+//     _context = context;
+//   }
+
+//   public async Task<List<Task>> GetTasks()
+//   {
+//     return await _context.Tasks.ToListAsync();
+//   }
+// }

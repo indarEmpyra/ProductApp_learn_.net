@@ -33,6 +33,12 @@ namespace ProductApp.Controllers
 
   public class UserController : ControllerBase
 
+  // What ControllerBase provides
+  // Ok()
+  // BadRequest()
+  // NotFound()
+  // Created()
+
   //? ControllerBase is a base class for an MVC controller without view support. 
   // It provides common functionality for handling HTTP requests and generating responses, such as model binding, validation, and formatting.
 
@@ -87,7 +93,7 @@ namespace ProductApp.Controllers
   //         }
   //     }
 
-  //# if we don't define ApiResponse and ApiError in a base controller then we will have tgo handle response formatting manually, like this:
+  //# if we don't define ApiResponse and ApiError in a base controller then we will have to handle response formatting manually, like this:
   // public class UserController : ControllerBase
   // {
   //    [HttpGet("/users")]

@@ -1001,7 +1001,7 @@ app.Run();
 
 
 
-
+//NOTE: Files of  .Net application:
 // .csproj - project file that defines dependencies, target framework, build settings, etc. (similar to package.json but XML-based)
 // appSettings.json - connection strings, API keys, logging config, feature flags, etc. (non-sensitive config)
 // appSettings.Development.json - development-specific config (but still not ideal for secrets)
@@ -1026,17 +1026,11 @@ app.Run();
 // ✔ How EF translates LINQ → SQL
 // ✔ How to optimize DB queries
 
-
 // 1️⃣ Dependency Injection (DI container)
-
 // Why .NET uses DI everywhere.
-
 // 2️⃣ ASP.NET Request Pipeline
-
 // This explains:
-
 // app.UseAuthentication()
 // app.UseAuthorization()
 // 3️⃣ Entity Framework + DbContext
-
 // How database connection works.

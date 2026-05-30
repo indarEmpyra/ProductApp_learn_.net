@@ -78,15 +78,167 @@ using System.Linq;
 namespace ProductApp.Services.Implementations
 {
   public class UserService : IUserService
+
+  // Interface → IUserService
+  // Implementation → UserService
+
+  //   : IUserService
+  // This means the class implements an interface.
+
+  //   Why.NET uses interfaces everywhere
+
+  // For:
+
+  // dependency injection
+  // testing
+  // loose coupling
+
+  // Example:
+
+  // Controller depends on IUserService
+
+  // But actual runtime object is:
+
+  // UserService
+
+  // This allows swapping implementations easily.
+
+  // Example:
+
+  // MockUserService
+  // CachedUserService
+  // RemoteUserService
+
   {
     private readonly AppDbContext _context;
+
+    // private means only this class can access _context
+    // readonly Means: Value can only be assigned once Usually in constructor. After that it cannot change.
+
+    // Example:
+    // _repo = repo;
+    // But later this would fail:
+    // _repo = newRepo; // not allowed
+
+    // Why used?
+
+    // immutability
+    // thread safety
+    // good practice
+
+    //# AppDbContext
+
+    // This is the type of the variable.
+    // It says:
+
+    // _context must implement AppDbContext
+    // _context is a reference to an object that can perform database operations defined in AppDbContext, 
+    // such as querying and saving data related to users, products, etc.
+
+    // Example interface:
+
+    // public interface AppDbContext
+    // {
+    //     Task<List<Task>> GetAll();
+    // }
+
+    //#  _context
+
+    // This is the variable name.
+    // Convention in .NET:
+    // _privateField
+
+    // Examples:
+
+    // _userService
+    // _context
+    // _logger
+
 
     public UserService(AppDbContext context)
     {
       _context = context;
     }
 
+    //# This is the constructor. A constructor runs when the object is created.
+    // Why this constructor exists?
+    // To inject dependencies.
+
+    // ASP.NET automatically creates objects using Dependency Injection.
+
+    // Example runtime flow:
+    // Controller needs TaskService
+    // ↓
+    // DI container creates TaskService
+    // ↓
+    // DI injects ITaskRepository
+
+    //# _context = context;
+    // This assigns the injected AppDbContext instance to the private readonly field _context, allowing the service to use it 
+    // for database operations throughout the class.
+    //  This assigns the injected dependency to the class field.
+
+    // Can you elaborate on this assignment and why it's important?
+    // This assignment is crucial because it allows the UserService class to use the AppDbContext instance that is provided by the Dependency Injection container.
+    // By assigning the injected context to the private readonly field _context, the service can perform database operations such as querying users,
+    //  adding new users, updating existing users, and deleting users throughout the class methods.
+    // Without this assignment, the service would not have access to the database context and would not 
+    // be able to interact with the database, making it impossible to implement the required functionality defined in the IUserService interface.
+
+    // JS equivalent: this.repo = repo
+
     public async Task<List<User>> GetAllUsersAsync()
+
+    // Public async method
+    // named GetAllUsersAsync
+    // returns a Promise(Task)
+    // that resolves to a List of User objects
+
+    //# async means the method contains asynchronous operations and can use await.
+
+    //# Return type: Task<List<User>>
+    // In .NET: Task = Promise
+    // Return type: Promise<User[]> : A return type of user objects array wrapped in a promise, indicating an asynchronous operation 
+    // that will eventually produce an array of user objects.
+
+    // possible return types:
+    // Task<User> - returns a single user asynchronously
+    // Task<List<User>> - returns a list of users asynchronously
+    // Task<UserResponse> - returns a single user response DTO asynchronously
+    // Task<bool> - returns a boolean indicating success/failure of an async operation (e.g., delete)
+    // Task<int> - returns an integer result asynchronously (e.g., number of records affected)
+    // Task<string> - returns a string result asynchronously (e.g., a message or status)
+    // Task - returns a void result asynchronously (e.g., for operations that don't return data)
+
+
+    //# List<User> means: "a list of User objects"
+    // List of User objects
+
+    // Equivalent Node:
+
+    // User[]
+
+    // Example class:
+
+    // public class User
+    //     {
+    //       public int Id { get; set; }
+    //       public string Title { get; set; }
+    //     }
+
+    //     Then:
+
+    // List<User>
+
+    // Means:
+
+    // [
+    //   User,
+    //   User,
+    //   User
+    // ]
+
+    //# Task<List<User>> means: "an asynchronous operation that will eventually return a List<User>"
     {
       return await _context.Users.ToListAsync();
     }
