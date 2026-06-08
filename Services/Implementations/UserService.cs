@@ -526,3 +526,140 @@ namespace ProductApp.Services.Implementations
 // BulkCopy(): Efficiently inserts large amounts of data.
 // Example: Using SqlBulkCopy in ADO.NET to insert a DataTable of products into the database in one operation, 
 // which is much faster than inserting records one by one.
+
+
+
+
+
+
+//? EF Core Deep Dive (Architect Level)
+
+// Now we go deep into performance + internals.
+
+// 🧠 1. Tracking vs No Tracking
+// Tracking means EF keeps track of changes to entities. This allows updates but uses more memory and is slower for read-only queries.
+
+// Default:
+
+// _context.Tasks.ToListAsync();
+
+// 👉 EF tracks objects
+
+// Problem
+// More memory usage
+// Slower for read-only queries
+// Solution
+// _context.Tasks
+//     .AsNoTracking()
+//     .ToListAsync();
+// Rule
+// Read-only → use AsNoTracking()
+
+// 🧠 2. N+1 Problem
+
+// Bad:
+
+// var tasks = await _context.Tasks.ToListAsync();
+
+// foreach (var t in tasks)
+// {
+//     var project = t.Project; // triggers extra queries
+// }
+// Fix
+// var tasks = await _context.Tasks
+//     .Include(t => t.Project)
+//     .ToListAsync();
+// Node Equivalent
+// .populate("project")
+
+// 🧠 3. Select Projection (VERY IMPORTANT)
+
+// Bad:
+
+// _context.Tasks.ToListAsync();
+
+// Better:
+
+// _context.Tasks
+//     .Select(t => new {
+//         t.Id,
+//         t.Title
+//     })
+//     .ToListAsync();
+// Why?
+// Fetch only needed columns
+// Better performance
+
+// 🧠 4. SaveChanges Behavior
+// _context.Tasks.Add(task);
+// await _context.SaveChangesAsync();
+
+// Internally:
+
+// 1. Track entity
+// 2. Detect changes
+// 3. Generate SQL
+// 4. Execute SQL
+
+
+// 🧠 5. Transactions
+// using var transaction = await _context.Database.BeginTransactionAsync();
+
+// try
+// {
+//     // multiple DB operations
+//     await _context.SaveChangesAsync();
+
+//     await transaction.CommitAsync();
+// }
+// catch
+// {
+//     await transaction.RollbackAsync();
+// }
+
+// 🧠 6. Performance Tips
+
+// ✔ Use AsNoTracking() for reads
+// ✔ Use projections (Select)
+// ✔ Avoid loading full entities
+// ✔ Use pagination
+
+// 🧠 7. Pagination Example
+// _context.Tasks
+//     .Skip(0)
+//     .Take(10)
+//     .ToListAsync();
+
+
+// //TODO: 🧠 Architect-Level Summary
+
+// 1️⃣ CQRS + MediatR(matches your office Handlers folder)
+// 2️⃣ Background jobs(Hangfire / HostedService)
+// 3️⃣ Kafka / async messaging(aligns with your microservices goal)
+// 4️⃣ Caching(Redis)
+
+
+
+//? “DI brings dependencies automatically”
+// ✅ Correct — but refine it:
+// DI container creates objects ONLY if you register them
+
+// Example:
+
+// builder.Services.AddScoped<ITaskService, TaskService>();
+
+// 👉 Without this, DI cannot resolve the dependency
+
+// 🧠 Also important:
+
+// DI resolves dependencies recursively
+
+// Controller → Service → DbContext
+
+// .NET will:
+
+// 1. Create Controller
+// 2. See it needs Service
+// 3. Create Service
+// 4. See it needs DbContext
+// 5. Create DbContext

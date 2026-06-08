@@ -1011,20 +1011,18 @@ app.Run();
 
 
 
-//TODO: Questions to go deep
-// How DI container works internally
-// Request lifecycle deep dive (thread, async, pipeline)
-// Scoped vs Singleton pitfalls (very important in real apps)
-// Threading model(async/await + thread pool)
-// How Kestrel handles concurrent requests
-// How EF manages connection pooling
 
-//TODO: To understand
-// ✔ How .NET handles requests
-// ✔ How DI creates objects
-// ✔ How middleware controls flow
-// ✔ How EF translates LINQ → SQL
-// ✔ How to optimize DB queries
+
+
+
+
+
+
+
+
+
+
+
 
 // 1️⃣ Dependency Injection (DI container)
 // Why .NET uses DI everywhere.
@@ -1034,3 +1032,31 @@ app.Run();
 // app.UseAuthorization()
 // 3️⃣ Entity Framework + DbContext
 // How database connection works.
+
+//TODO: Questions to go deep
+// How DI container works internally
+// Request lifecycle deep dive (thread, async, pipeline)
+// Scoped vs Singleton pitfalls (very important in real apps)
+// Threading model(async/await + thread pool)
+// How Kestrel handles concurrent requests
+// How EF manages connection pooling
+
+
+//TODO: To understand
+// ✔ How .NET handles requests
+// ✔ How DI creates objects
+// ✔ How middleware controls flow
+// ✔ How EF translates LINQ → SQL
+// ✔ How to optimize DB queries
+// ✔ How the Dependency Injection container works internally and how objects get created automatically.
+// How DI container works internally
+// Request lifecycle deep dive (thread, async, pipeline)
+// Scoped vs Singleton pitfalls (very important in real apps)
+// Threading model(async/await + thread pool)
+// How Kestrel handles concurrent requests
+// CQRS + MediatR
+// Background workers
+// Caching
+// Distributed systems patterns in .NET
+// Minimal APIs vs Controllers
+// Generic repositories (and why many architects avoid them)
