@@ -241,6 +241,46 @@ namespace ProductApp.Services.Implementations
     //# Task<List<User>> means: "an asynchronous operation that will eventually return a List<User>"
     {
       return await _context.Users.ToListAsync();
+
+      //# _context.Users returns an IQueryable<User> representing the Users table in the database.
+      // .ToListAsync() executes the query and returns the results as a List<User> asynchronously.
+      // await is used to wait for the asynchronous operation to complete without blocking the thread.  
+
+      //# Why not just return _context.Users.ToList()?
+      // Because ToList() is synchronous and would block the thread while waiting for the database operation to complete, 
+      // which can lead to performance issues in a web application.
+
+
+      //? When does the _context gets populated with data from the database?
+      // The _context is populated with data from the database when you execute a query against it, such as calling ToListAsync() on a DbSet.
+      // Until you execute a query, the _context is just a representation of the database and does not contain any data. When you call a method like ToListAsync(), 
+      // it sends a query to the database, retrieves the data, and populates the _context with the results, which are then returned as a List<User>. 
+
+      // So, when we inject AppDbContext into DI container, it creates an instance of AppDbContext, but it does not automatically populate it with data. 
+      // The data is only fetched when you execute a query against the DbSet properties of the context, such as _context.Users.ToListAsync().
+
+      //# _context holding the whole database, doesn't this consume a lot of memory?
+      // No, the _context itself does not hold the entire database in memory. It is a lightweight object that represents a session with the database. 
+      // The actual data is only loaded into memory when you execute a query against the DbSet properties, such as _context.Users.ToListAsync().
+      // When you execute a query, only the relevant data is fetched from the database and loaded into memory. 
+      // The _context manages the connection to the database and tracks changes to entities, but it does not load the entire database into memory at once. 
+      // This allows for efficient data access and manipulation without consuming excessive memory resources.   
+
+      // Is it that, when we say _context.Users, it does not immediately fetch all users from the database, but rather creates a queryable object that can be further refined with LINQ methods, 
+      // and only when we call ToListAsync() does it execute the query and fetch the relevant data?
+      // Yes, that's correct. When you access _context.Users, it returns an IQueryable<User> which is a queryable object that represents the Users table in the database.
+      // You can further refine this queryable object using LINQ methods like Where, Select, etc. However, no data is fetched from the database at this point. 
+      // The actual database query is only executed when you call a terminal method like ToListAsync(), which then fetches the relevant 
+      // data based on the defined query and loads it into memory as a List<User>. This allows for efficient querying and data retrieval without loading unnecessary data into memory. 
+
+      //# How does it manage to fetch only relevant data without loading the entire database?
+      // The _context uses a feature called "lazy loading" and "query translation" to fetch only the relevant data. When you execute a 
+      // query against a DbSet, such as _context.Users.ToListAsync(),
+      // the Entity Framework translates that LINQ query into SQL and sends it to the database. The database then executes the SQL query 
+      // and returns only the relevant records that match the query criteria.
+      // This means that only the data that is needed for the specific query is loaded into memory instead of the entire database. 
+      // The _context manages this process efficiently, allowing you to work with large databases without consuming excessive memory.   
+
     }
 
 

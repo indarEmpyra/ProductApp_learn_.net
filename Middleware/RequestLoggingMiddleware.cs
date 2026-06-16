@@ -10,6 +10,13 @@ namespace ProductApp.Middleware
     // Because we want to ensure that after logging the incoming request, we allow the request to proceed to the next middleware in the pipeline.
     // If we don't call _next(context), the request will not continue, and the response will not be generated, resulting in a stalled request.
 
+
+    //# 🧠 Middleware Signature
+    // public async Task Invoke(HttpContext context)
+    // {
+    //     await _next(context);
+    // }
+
     public RequestLoggingMiddleware(RequestDelegate next)
     {
       _next = next;

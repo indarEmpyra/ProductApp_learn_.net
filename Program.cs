@@ -56,6 +56,7 @@ var builder = WebApplication.CreateBuilder(args);
 // - Microsoft.AspNetCore.Builder
 // - Microsoft.Extensions.DependencyInjection
 // - Microsoft.Extensions.Hosting
+// 
 
 
 //# var builder = WebApplication.CreateBuilder(args);
@@ -491,7 +492,7 @@ app.Run();
 // dotnet user-secrets init
 // dotnet user-secrets set "ApiKey" "secret-value"
 
-// Wht's the best practice to store db connection string as it always has login credentials in it?
+//# Wht's the best practice to store db connection string as it always has login credentials in it?
 // The best practice is to store the database connection string in a secure location, such as environment 
 // variables or using the User Secrets feature during development.
 // In production, you can use environment variables or a secure secrets management service (like Azure Key Vault, AWS Secrets Manager, etc.) 
@@ -548,6 +549,50 @@ app.Run();
 // Then, you can add this middleware to the pipeline in Program.cs using app.UseMiddleware<RequestLoggingMiddleware>() to ensure 
 //that all requests and responses are logged as they pass through the middleware pipeline. 
 
+
+//? How does a Class uses methods of other class? Does the class need to create an instance of the other class to use its methods?
+// A class can use methods of another class by creating an instance of that class and calling its methods.
+// For example, if you have a ProductService class that needs to use methods from AppDbContext,
+// the ProductService would typically have a constructor that takes an AppDbContext as a parameter, and then it can call the methods of AppDbContext 
+// to perform database operations.
+
+//# Creating instance means, creating an object of that class using the new keyword, like this:
+// var dbContext = new AppDbContext();
+
+//# Let's use methods of AppDbContext in ProductService without using DI:
+// public class ProductService : IProductService
+// {
+//    private readonly AppDbContext _context;
+//    public ProductService()
+//    {
+//        _context = new AppDbContext(); // Manually creating an instance of AppDbContext
+//    }
+//     // Now you can use _context to access the database in your methods
+// }
+
+// However, this approach can lead to tightly coupled code and makes it difficult to manage dependencies, especially as the application grows in complexity.
+
+
+//# But, 
+// with the DI system in ASP.NET Core, you don't have to manually create instances of your dependencies (like AppDbContext) in your classes (like ProductService).
+// Instead, you can register your services and their dependencies in the DI container (using builder.Services.AddScoped(), AddSingleton(), etc.),
+// and then you can simply declare your dependencies in the constructor of your classes, and the framework will automatically 
+// resolve and inject the correct instances when needed. 
+
+//# How to declare your dependencies in the constructor of your classes?
+// You can declare your dependencies in the constructor of your class by adding parameters that correspond to the services you want to inject.
+// For example, in your ProductService class, you can declare a dependency on AppDbContext like this:
+// public class ProductService : IProductService
+// {
+//     private readonly AppDbContext _context;
+
+//     public ProductService(AppDbContext context)
+//     {
+//         _context = context;
+//     }
+
+//     // Now you can use _context to access the database in your methods
+// }
 
 
 //? Dependency Injection (DI):

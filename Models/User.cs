@@ -36,15 +36,85 @@ namespace ProductApp.Models
     [Phone]
     public string PhoneNumber { get; set; }
 
-
     [Required]
-    [ForeignKey("RoleId")]
     public int RoleId { get; set; }
-    // How will we know which role a user belongs to? We can add a RoleId foreign key property to the User class, 
-    // and then use the [ForeignKey] attribute to specify that it references the Role entity. 
-    // This way, we can establish a relationship between users and roles in our database.
+    public Role Role { get; set; } = null!;
 
-    // Without mentioning table name in the [ForeignKey] attribute, EF will look for a table named "Role" by convention.
+    //# "null!" is a way to tell the compiler that we are intentionally allowing this property to be null, and that we will ensure it is not null at runtime.
+
+
+    //? How to set foreign key for Role table which has "id" as primary key and I want this to be "RoleId" in User class?
+    // Convention: EF will look for "Role" table and "Id" column as primary key by convention, so if you have a navigation property named 
+    // "Role" in your User class, EF will automatically treat "RoleId" as the foreign key for that relationship.
+    // User.RoleId -> Role.Id
+    // because of the convention:
+
+    // Navigation Property Name + Id
+    // Role + Id = RoleId
+
+    // No configuration required.
+
+    // Example: 
+    // public int RoleId { get; set; }
+    // public Role Role { get; set; } -- this is the navigation property that EF will use to establish the relationship between User and Role entities based on the convention.
+
+    //? How to set foreign key for "UserRole" table which has "id" as primary key and I want this column to be "RoleId" in User class?
+    // User.RoleId -> UserRole.Id
+
+    // public int RoleId { get; set; }
+    // public UserRole Role { get; set; }
+
+    //? How to set foreign key for "UserRole" table which has "RoleId" as primary key and I want this column to be "RoleId" in User class?
+    // User.RoleId -> UserRole.RoleId
+    // public int RoleId { get; set; }
+    // public UserRole Role { get; set; }
+
+    //! Real-world Example
+
+    // Most applications use:
+
+    // public class User
+    // {
+    //     public int RoleId { get; set; }
+
+    //     public Role Role { get; set; }
+    // }
+
+    // public class Role
+    // {
+    //     public int Id { get; set; }
+
+    //     public ICollection<User> Users { get; set; }
+    // }
+
+    // with:
+
+    // modelBuilder.Entity<User>()
+    //     .HasOne(u => u.Role)
+    //     .WithMany(r => r.Users)
+    //     .HasForeignKey(u => u.RoleId);
+
+    // which generates:
+
+    // FOREIGN KEY (RoleId)
+    // REFERENCES Roles(Id)
+
+    // and this is by far the most common pattern you'll see in production .NET applications.
+
+    // One small correction on your questions: a table named UserRole is usually a junction table for a many-to-many relationship between User and Role:
+
+    // Users
+    // Roles
+    // UserRoles
+
+    // In that case, UserRole would typically contain:
+
+    // UserId
+    // RoleId
+
+    // rather than being used as a lookup table for roles. If you're actually modeling roles, a table named Role is usually the clearer design.
+
+
 
     public bool IsActive { get; set; } = true;
 
@@ -127,6 +197,25 @@ namespace ProductApp.Models
 // public string FirstName { get; set; }
 // This way, the FirstName property in your model class will be mapped to the first_name column in the database when using Entity Framework Core.
 
+//# I have seen different apis sending back same property with different keys in the response. 
+//# For example, in List API, we return Id, Name, Email but in GET/POST API we return UserId, FullName, EmailAddress.  
+// How do they achieve this? Do they have different properties in the model class for each response or do they use some 
+// kind of mapping to return different keys for the same property in different responses?  
+// They typically use DTOs (Data Transfer Objects) to shape the data they want to return in their API responses.
+// For example, they might have a UserDto that contains the properties they want to return in the List response (e.g., Id, Name, Email),
+// and a GetUserDto that contains the properties they want to return in the GET/POST responses (e.g., UserId, FullName, EmailAddress).
+// Then, in their controller actions, they can map their User entities to the appropriate DTOs before returning the response.
+// For example:
+// var users = _dbContext.Users.Select(u => new UserDto 
+// {
+//     Id = u.Id,
+//     Name = $"{u.FirstName} {u.LastName}",
+//     Email = u.Email
+// }).ToList();
+// return Ok(users);
+
+
+
 
 
 
@@ -202,6 +291,14 @@ namespace ProductApp.Models
 // in a single transaction, maintaining data integrity and consistency.
 
 
+//# What does deferred execution mean in the context of navigation properties and EF Core?
+// Deferred execution means that the related data for navigation properties is not loaded from the database until it is actually accessed in your code.
+// For example, if you have a User entity with a navigation property to an Organization, when you query for a User, 
+// the related Organization data will not be loaded immediately.
+// Instead, it will be loaded only when you access the Organization property of the User entity. 
+// This allows for more efficient use of resources, as you only load the related data when you need it, rather than loading it upfront for every query. 
+
+
 
 //? Does navigation properties mean Foreign key relationship in database?
 // Navigation properties represent the relationships between entities in your code, but they do not automatically create foreign key relationships in the database.
@@ -210,6 +307,15 @@ namespace ProductApp.Models
 // For example, if you have an OrganizationId property in the User class that is a foreign key to the Organization entity, 
 // you can decorate it with the [ForeignKey] attribute to indicate that it is related to the Organization navigation property.
 // Alternatively, you can use the fluent API in the DbContext's OnModelCreating method to configure the relationships using the HasOne and WithMany methods.
+
+// Example:
+// public class User
+// {
+//     public int Id { get; set; }
+//     public int OrganizationId { get; set; } // Foreign key property
+//     [ForeignKey("OrganizationId")]
+//     public Organization Organization { get; set; } // Navigation property
+// }
 
 
 //? How do I specify foreign key relationships in Entity Framework Core?
@@ -442,7 +548,10 @@ namespace ProductApp.Models
 //     ]
 //   },
 
-// This is not a code bug — your request body has a trailing comma in the JSON. For example:
+//! This is not a code bug — your request body has a trailing comma in the JSON. For example:
+// "," after the last property in the JSON object is not valid JSON syntax.
+// To fix this, simply remove the trailing comma from your JSON request body.
+//
 
 
 /*----------------------------------------------------------------------------------------------------------*/
@@ -455,12 +564,13 @@ namespace ProductApp.Models
 
 // This class is a simple POCO (Plain Old CLR Object) that represents a product in our application.
 // It has properties for Id, Name, Description, Price, Quantity, and CreatedDate.
-// When we use Entity Framework Core, it will automatically create a database table based on this class.
+
+//? When we use Entity Framework Core, it will automatically create a database table based on this class.
 // The Id property will be the primary key of the table, and the other properties will be columns in the table. 
 // This allows us to easily perform CRUD operations on products in our database using Entity Framework Core.
 // Migrations will help us keep our database schema in sync with our model classes as we make changes to them over time.
 
-// DTO (Data Transfer Object) is a design pattern used to transfer data between software application subsystems.
+//? DTO (Data Transfer Object) is a design pattern used to transfer data between software application subsystems.
 /// Represents a product entity in the database.
 /// This is a POCO (Plain Old CLR Object) that maps to a database table via Entity Framework Core.
 /// </summary>
@@ -495,16 +605,65 @@ namespace ProductApp.Models
 // operations based on the Product model and AppDbContext. It will also generate views for these actions if you are using MVC (not applicable for Web API).
 
 
+//? What is Migrations in Entity Framework Core?
+// Migrations are a way to keep your database schema in sync with your EF Core model classes.
+// When you create or modify your model classes (like Product or User), you need to create a migration to update the database schema accordingly.
+// The migration captures the changes you made to your model and generates code to apply those changes to the database. 
+// This way, you can keep your database schema in sync with your model classes as they evolve over time.
+
+//# To create a migration, you use the following command in the terminal: 
+// dotnet ef migrations add InitialCreate. 
+
+//# After creating the migration, you apply it to the database using: 
+//dotnet ef database update. 
+
+//This process ensures that your database schema 
+// matches your model classes as they evolve over time.  
+
+// Note: If you make changes to your model classes (e.g., add a new property), you need to create a new migration to update the database schema accordingly.
+
+// Each migration captures the changes you made to your model and generates code to apply those changes to the database. 
+// This way, you can keep your database schema in sync with your model classes as they evolve over time.
+// For example, if you add a new property to the Product class (e.g., public string Category { get; set; }), you would need to create a new migration 
+// to add the Category column to the Products table in the database. 
+
+//# You would run: 
+//dotnet ef migrations add AddCategoryToProduct
+
+//# and then apply it with: 
+//dotnet ef database update.
+
+// This process allows you to manage changes to your database schema in a structured way as your application evolves. 
+// Migrations are a powerful feature of Entity Framework Core that help you manage changes to your database schema over time. 
+// They allow you to evolve your database schema as your application requirements change, without losing existing data. 
+// By creating and applying migrations, you can keep your database schema in sync with your model classes, ensuring that your 
+// application continues to function correctly as you make changes to your models.  
+
+//? How to create migrations of many changes at once?
+// When you make multiple changes to your model classes, you can create a single migration that captures all of those changes at once.
+// For example, if you add a new property to the Product class and also change the data type of an existing property, you can create a single migration that includes both of those changes.
+// You would run the following command in the terminal to create a migration that captures all of your changes:
+
+// dotnet ef migrations add UpdateProductModel
+
+// This will generate a migration file that includes code to add the new property and change the data type of the existing property in the database schema.
+// After creating the migration, you would apply it to the database using:
+// dotnet ef database update
+// This will execute the migration and update the database schema to reflect all of the changes you made to the Product model in a single step.
 
 
-// 1. Database → Code (Reverse Engineering)
+
+
+
+//# 1. Database → Code (Reverse Engineering) - Called "Scaffolding"
+// You start with an existing database and generate code (model classes) based on the database schema
 //You already have a database
 // 👉 You generate:
 // Entities
 // DbContext
 // Command: dotnet ef dbcontext scaffold "connection-string" Microsoft.EntityFrameworkCore.SqlServer -o Models
 //
-// 2. Code → Database (Migrations)
+//# 2. Code → Database (Migrations)
 // You start with code (model classes) and generate the database schema from it.
 // You create model classes (like Product and User) and then use EF Core migrations to create the database schema based on those models.
 // The migration captures the changes you made to your model and generates code to apply those changes to the database. 
@@ -517,7 +676,9 @@ namespace ProductApp.Models
 
 // After creating the migration, you apply it to the database using: dotnet ef database update. This process ensures that your database schema matches your model classes as they evolve over time.
 
-// 3. Model → Controller (Code Generation)
+// 3. Model → Controller (Code Generation) - Called "Scaffolding"
+// You start with a model class and generate a controller with CRUD actions based on that model.
+
 // You create a model class (like Product) and then use scaffolding to generate a controller with CRUD actions based on that model.
 // Command: dotnet aspnet-codegenerator controller -name ProductController -m Product -dc AppDbContext --relativeFolderPath Controllers --useDefaultLayout --referenceScriptLibraries
 // This command generates a ProductController with actions for Create, Read, Update, and Delete operations based on the Product model and AppDbContext. It also generates views for these actions if you are using MVC (not applicable for Web API).
@@ -555,3 +716,42 @@ namespace ProductApp.Models
 // This will execute the migration and update the database schema to reflect the changes you made to the Job entity. Make sure to review the generated migration code to ensure it accurately reflects the changes you intended to make before applying it to the database. 
 
 
+//? Is there a a way to create methods in the model class to perform operations like calculating total price, applying discounts, etc.?
+// Yes, you can create methods in your model class to perform operations related to the entity. For example, in a Product class, you could have a method to calculate the total price after applying a discount.
+// Here's an example of how you might implement this in a Product class:
+// public class Product
+// {
+//     public int Id { get; set; }
+//     public string Name { get; set; }
+//     public string Description { get; set; }
+//     public decimal Price { get; set; }
+//     public int Quantity { get; set; }
+//     public DateTime CreatedDate { get; set; }
+
+//     // Method to calculate total price after applying a discount
+//     public decimal CalculateTotalPrice(decimal discountPercentage)
+//     {
+//         if (discountPercentage < 0 || discountPercentage > 100)
+//         {
+//             throw new ArgumentOutOfRangeException(nameof(discountPercentage), "Discount percentage must be between 0 and 100.");
+//         }
+
+//         decimal discountAmount = Price * (discountPercentage / 100);
+//         return Price - discountAmount;
+//     }
+// }
+
+//? How to use this method in your services or controllers?
+// You can use this method in your services or controllers by creating an instance of the Product class and calling the method with the 
+// appropriate parameters. For example, in a controller action, you might do something like this:
+// public IActionResult GetProductTotalPrice(int productId, decimal discountPercentage)
+// {
+//     var product = _dbContext.Products.FirstOrDefault(p => p.Id == productId
+//     if (product == null)
+//     {
+//         return NotFound();
+//     }
+
+//     decimal totalPrice = product.CalculateTotalPrice(discountPercentage);
+//     return Ok(totalPrice);
+// }

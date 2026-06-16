@@ -43,6 +43,11 @@ public class ExceptionMiddleware
     context.Response.ContentType = "application/json";
     context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
+    //# (int)HttpStatusCode.InternalServerError;
+    // The (int) before HttpStatusCode.InternalServerError is a cast operator that converts the HttpStatusCode.InternalServerError 
+    // enum value to its underlying integer representation, which is 500.
+    // HttpStatusCode.InternalServerError is an enumeration value that represents the HTTP status code for an internal server error. 
+    //By casting it to an integer, we can set the response status code to 500, indicating that an error occurred on the server while processing the request. 
     var response = new
     {
       message = ex.Message,

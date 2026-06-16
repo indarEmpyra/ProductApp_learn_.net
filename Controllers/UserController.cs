@@ -33,11 +33,23 @@ namespace ProductApp.Controllers
 
   public class UserController : ControllerBase
 
-  // What ControllerBase provides
+  // What ControllerBase provides:
   // Ok()
   // BadRequest()
   // NotFound()
   // Created()
+  // InternalServerError()
+  // Json()
+  // File()
+  // Redirect()
+  // RedirectToAction()
+  // RedirectToRoute()
+  // Content()
+  // Empty()
+  // FileContent()
+  // FileStream()
+  // FilePath()
+  // And many more helper methods for generating HTTP responses.
 
   //? ControllerBase is a base class for an MVC controller without view support. 
   // It provides common functionality for handling HTTP requests and generating responses, such as model binding, validation, and formatting.
@@ -185,6 +197,50 @@ namespace ProductApp.Controllers
     //     }
     // }
 
+
+    //NOTE: The [Authorize] attribute is a built-in attribute provided by the ASP.NET Core framework for handling authorization in web applications.
+
+    //# Office code example of using [Authorize] attribute:
+
+    // [Authorize(AuthenticationSchemes = gstrTokenKeyAuthenticationScheme, Roles = "Admin, Staff, Respondent, ExternalAPIClient")]
+    // [HttpPost("/api/JobOrder")]
+    // [SwaggerOperation(Summary = "Upserts a JobOrder.",
+    // Description = "Upserts a JobOrder.",
+    // Tags = new[] { "Job Orders" })]
+    // [SwaggerOperationFilter(typeof(TokenKeyHeaderFilter))]
+    // [SwaggerResponse(StatusCodes.Status200OK, $"Returns the Id of the joborder and a message.")]
+
+    // In this example, the [Authorize] attribute is used to restrict access to the CreateJobOrder action method to users 
+    // who are authenticated using the specified authentication scheme and belong to one of the specified roles (Admin, Staff, Respondent, ExternalAPIClient).
+    // This means that only users who meet these criteria will be able to access the CreateJobOrder endpoint and perform the operation defined in that action method.
+
+    // The [Authorize] attribute can be applied at the controller level to protect all actions within the controller, or at the action level to protect specific actions.
+
+    //# But, is this a good practice to have [Authorize] attribute at the controller level or action level?
+    // It depends on the specific requirements of your application and how you want to structure your authorization logic.
+    // Applying the [Authorize] attribute at the controller level can be a good practice if you want to protect all actions within the controller 
+    // with the same authorization requirements.
+    // This can help to reduce code duplication and ensure consistency in your authorization logic across all actions in that controller.
+    // However, if you have different authorization requirements for different actions within the same controller, it may be better to apply the [Authorize] 
+    // attribute at the action level. This allows you to specify different roles or policies for each action, providing more 
+    // granular control over access to specific endpoints.
+    // Ultimately, the choice of where to apply the [Authorize] attribute should be guided by the specific needs of your application and 
+    // how you want to manage your authorization logic for maintainability and clarity. 
+
+    //# In the above example, why are they mentioning swagger attributes like [SwaggerOperation] and [SwaggerResponse] where swagger should be a 
+    // generic documentation tool and need not get defined on each controller?
+    // The Swagger attributes like [SwaggerOperation] and [SwaggerResponse] are used to provide additional metadata for API documentation generation.
+    // While Swagger is a generic documentation tool, these attributes allow you to customize the documentation for specific endpoints, such as 
+    // providing summaries, descriptions, tags, and response types for each action method.
+    // By using these attributes, you can enhance the generated API documentation with more detailed information about each endpoint, making it 
+    // easier for developers to understand the purpose and behavior of the API.
+    // However, if you want to avoid adding these attributes to each controller or action method, you can also configure Swagger to use 
+    // conventions or apply global filters to automatically generate documentation based on your API structure and conventions.
+    // This way, you can maintain a cleaner controller code while still providing comprehensive API documentation through Swagger.  
+
+
+
+
     //? Is Authorize attribute a custom attribute?
     // No, the Authorize attribute is not a custom attribute. It is a built-in attribute provided by the ASP.NET Core framework for handling authorization in web applications.
     // The Authorize attribute is used to restrict access to controllers or action methods based on the user's authentication status or roles. It can be applied at the controller level to protect all actions within the controller, or at the action level to protect specific actions.
@@ -241,6 +297,20 @@ namespace ProductApp.Controllers
 
       return ApiResponseHelper.Success(response);
       // Finally, the ApiResponseHelper.Success helper method is called to return a standardized API response with the list of user responses.
+
+      //? Is this a standard way to return response object or should we directly return Ok(response) or something like that?
+      // Using a helper method like ApiResponseHelper.Success can be a good practice for returning standardized API responses, 
+      // as it allows you to maintain consistency in the structure of your responses across different endpoints.
+      // However, you can also directly return Ok(response) or other IActionResult types if you prefer a more straightforward approach.
+
+      //? Is there a better way to maintain standardized responses without using a helper method?
+      // Another way to maintain standardized responses without using a helper method is to create a custom base controller (e.g., ApiControllerBase) 
+      // that includes methods for generating standardized responses.
+      // For example, you could define a method like ApiResponse in the base controller that takes care of formatting the response in a consistent way.
+      // Then, in your UserController, you would inherit from ApiControllerBase and use the ApiResponse method to return responses in a standardized format.
+      // This approach allows you to centralize the response formatting logic in the base controller, reducing code duplication and ensuring consistency 
+      // across all your API controllers without needing a separate helper class. 
+
     }
 
     [HttpGet("{id}")]
