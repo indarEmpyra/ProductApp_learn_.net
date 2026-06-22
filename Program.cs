@@ -46,6 +46,12 @@ var builder = WebApplication.CreateBuilder(args);
 // In .NET 6 and later, the Microsoft.AspNetCore.App framework is included by default in ASP.NET Core applications, 
 // and it provides implicit global usings for commonly used namespaces, including Microsoft.AspNetCore.Builder.
 
+//# how to enable or disable implicit global usings in a .NET project?
+// You can enable or disable implicit global usings in a .NET project by editing the project file (.csproj) and adding the following property:
+// <PropertyGroup>
+//   <ImplicitUsings>enable</ImplicitUsings> <!-- Set to "disable" to turn off implicit global usings -->
+// </PropertyGroup>
+
 //# What all we don't have to explicitly import because of implicit global usings? 
 // In .NET 6 and later, implicit global usings are enabled by default in ASP.NET Core projects. 
 // This means you don't have to explicitly import commonly used namespaces like:

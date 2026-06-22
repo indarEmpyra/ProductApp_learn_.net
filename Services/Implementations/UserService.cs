@@ -24,6 +24,7 @@ using System.Linq;
 
 //# Do we really need to import System.Collections.Generic to use List<T>? or System.Threading.Tasks to use Task<T>?
 // Yes, in a typical .NET project, you need to import the System.Collections.Generic namespace to use List<T> and System.Threading.Tasks to use Task<T>.
+
 //# But, we are using Task<List<User>> without importing System.Threading.Tasks, and List<User> without importing System.Collections.Generic, how is that possible?
 // This is possible because of implicit global usings, a feature introduced in .NET 6. If your project has implicit 
 // global usings enabled (which is common in new .NET projects), then certain namespaces are automatically included in every file,
@@ -58,7 +59,7 @@ using System.Linq;
 
 // List<int> nums = new();
 // Example: List<int> nums = new(); works without using System.Collections.Generic; because of implicit global usings 
-//enabled in the .csproj file.
+// enabled in the .csproj file.
 // This is a feature that allows you to avoid having to write common using directives in every file
 
 //# Where is this defined?
@@ -79,19 +80,45 @@ namespace ProductApp.Services.Implementations
 {
   public class UserService : IUserService
 
-  // Interface → IUserService
-  // Implementation → UserService
+  // IUserService(Interface) is a contract that defines the methods and properties that a class must implement.
+  // UserService(Implementation) is a concrete class that provides the actual implementation of the methods defined in the IUserService interface.
 
-  //   : IUserService
+  // IUserService
   // This means the class implements an interface.
 
   //   Why.NET uses interfaces everywhere
-
   // For:
-
   // dependency injection
   // testing
   // loose coupling
+
+
+  //# Does dependency injection container support only the built-in pairing of interface and implementation?
+  // No, the dependency injection container in .NET supports any pairing of interface and implementation, 
+  // allowing you to register and resolve dependencies for any interface and its corresponding implementation,
+  // not just the built-in ones. You can register your own interfaces and implementations as needed 
+  // for your application, and the DI container will handle the resolution of those dependencies at runtime.
+
+  // Example:
+  // public interface IMyService
+  // {
+  //     void DoSomething();
+  // }
+
+  // public class MyService : IMyService
+  // {
+  //     public void DoSomething()
+  //     {
+  // Implementation code here
+  //     }
+  // }
+
+
+
+
+
+
+
 
   // Example:
 

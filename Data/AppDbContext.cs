@@ -186,6 +186,25 @@ namespace ProductApp.Data
 //     {
 //     }
 //     // You can add common functionality or properties here that you want to share across multiple DbContext classes.
+
+// For example, have a method to format the response sent to the client in a specific way, 
+// you can add that functionality in MyBaseDbContext and then have AppDbContext inherit from it.
+
+// public FormatResponse<T>(T data) 
+// {
+//     // How to format the response sent to the client in a specific way
+//     // For example, you can wrap the data in a standard response object with additional metadata
+//    return new StandardResponse<T>
+//    {
+//        Data = data,
+//        Timestamp = DateTime.UtcNow,
+//        Status = "Success"
+//    };
+//
+// }
+
+
+
 // }
 
 // public class AppDbContext : MyBaseDbContext
@@ -211,6 +230,67 @@ namespace ProductApp.Data
 // For example, you might have one DbContext for your main application data and another DbContext for logging or auditing purposes.
 // Each DbContext can be configured separately and can have its own set of DbSet properties that represent different tables in the database.
 // Just make sure to register each DbContext in your Program.cs with the appropriate configuration.
+
+
+
+
+
+
+//? Example of AppDbContext inheriting from a custom base class that itself inherits from DbContext and the custom base 
+//? class should have a method to format the response sent to the client in a specific way:
+
+// // 1. Custom Base Class inheriting DbContext
+// public abstract class CustomBaseDbContext : DbContext
+// {
+//   protected CustomBaseDbContext(DbContextOptions options) : base(options) { }
+
+//   // Custom method to format the client response
+//   public string FormatResponseForClient<T>(T data)
+//   {
+//     var options = new JsonSerializerOptions
+//     {
+//       PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+//       WriteIndented = true,
+//       // Add any additional formatting rules here
+//     };
+
+//     return JsonSerializer.Serialize(data, options);
+//   }
+// }
+
+// // 2. AppDbContext inheriting the custom base class
+// public class AppDbContext : CustomBaseDbContext
+// {
+//   public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+
+//   public DbSet<Product> Products { get; set; }
+// }
+
+// // Example Entity
+// public class Product
+// {
+//   public int Id { get; set; }
+//   public string Name { get; set; }
+//   public decimal Price { get; set; }
+// }
+
+
+// How to use the FormatResponseForClient method in your service or controller:
+// public class ProductService
+// {
+//   private readonly AppDbContext _context;
+//   public ProductService(AppDbContext context)
+//   {
+//   _context = context;
+// }
+//   public string GetFormattedProducts()
+//   {
+//     var products = _context.Products.ToList();
+//     return _context.FormatResponseForClient(products);
+//   }
+// }
+// In this example, the ProductService retrieves a list of products from the database and then uses the FormatResponseForClient 
+// method from the AppDbContext to format the response before sending it to the client.
 
 
 
