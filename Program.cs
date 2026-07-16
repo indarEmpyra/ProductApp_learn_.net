@@ -39,6 +39,12 @@ using ProductApp.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
+//# var builder = WebApplication.CreateBuilder(args);
+// This line initializes a new instance of the WebApplicationBuilder class, which is used to configure and build the web application.
+// The builder provides access to services, configuration, and other settings needed to set up the application. 
+// It takes command-line arguments (args) which can be used for configuration purposes 
+// (e.g., setting environment variables, specifying URLs, etc.). 
+
 //? Where does the WebApplicationBuilder class come from? 
 // It is part of the Microsoft.AspNetCore.Builder namespace, which is included in the Microsoft.AspNetCore.App framework.
 
@@ -65,11 +71,7 @@ var builder = WebApplication.CreateBuilder(args);
 // 
 
 
-//# var builder = WebApplication.CreateBuilder(args);
-// This line initializes a new instance of the WebApplicationBuilder class, which is used to configure and build the web application.
-// The builder provides access to services, configuration, and other settings needed to set up the application. 
-// It takes command-line arguments (args) which can be used for configuration purposes 
-// (e.g., setting environment variables, specifying URLs, etc.). 
+
 
 //? How to provide environment variables and command-line arguments when running the application?
 // You can provide environment variables and command-line arguments when running the application using the dotnet run command in the terminal.
@@ -477,6 +479,10 @@ app.Run();
 // In a production application, you typically don't want to include these generated files in your source control repository,
 // as they can be regenerated as needed and may contain environment-specific details.
 
+//? Should the migration be an automated process that runs with the build?
+// It depends on your deployment strategy and the environment you're working in.
+// 
+
 
 
 
@@ -655,7 +661,8 @@ app.Run();
 // and creates you a folder with all the necessary files, including the DLLs. 
 
 // 2. Copy the published files (including the DLLs) to the IIS server.
-// Do we need to copy the source code to the IIS server? No, you only need to copy the published files (including the DLLs) to the IIS server.
+// Do we need to copy the source code to the IIS server? 
+// No, you only need to copy the published files (including the DLLs) to the IIS server.
 // What files/folders do we need to copy to the IIS server?
 // You need to copy the contents of the publish output directory, which typically includes:
 // - The compiled DLLs (your application and its dependencies)
@@ -677,8 +684,6 @@ app.Run();
 // and other application-specific configurations.
 
 // Does the created webconfig file already have right set up done based on the defined route, requests and other items??  
-
-
 // When you publish a .NET application for IIS, the web.config file is automatically generated in the publish output directory.
 // This file contains the necessary configuration for IIS to run your application correctly, such as the handler mappings for ASP.NET Core,
 // environment variables, and other settings required for the application to function properly on IIS.
