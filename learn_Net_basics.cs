@@ -658,3 +658,133 @@
 // 24. Use[JsonIgnore] attribute to specify that a property should be ignored during JSON serialization (e.g., [JsonIgnore] public string Password { get; set; })
 // 25. Use [JsonProperty] attribute to specify the JSON property name for a property (e.g., [JsonProperty("task_title")] public string Title { get; set; }).
 // 
+
+// NOTE: Very Important
+
+//? What's the MediatR + CQRS?
+// MediatR is a library that implements the Mediator pattern, which allows for decoupling of request handling and 
+// response processing in an application. It provides a way to send requests and receive responses without having 
+// to know the details of how the requests are handled. MediatR is often used 
+// in conjunction with the CQRS (Command Query Responsibility Segregation) pattern, which separates read and 
+// write operations into different models.
+
+// CQRS is a design pattern that separates the read and write operations of an application into different models. 
+// It allows for better scalability and performance by optimizing the read and write operations separately. 
+// CQRS is often used in applications that have complex business logic or require high performance, 
+// as it allows for more efficient handling of read and write operations. While MediatR can be used to 
+// implement the Mediator pattern in a CQRS architecture, it is not a requirement for using CQRS.
+
+
+//? Controller -> Service Interface -> Service Implementation -> Repository Interface -> Repository Implementation -> DbContext 
+//? Vs 
+//? MediatR + CQRS pattern
+
+// CQRS (Command Query Responsibility Segregation) is a design pattern that separates 
+// the read and write operations of an application into different models. 
+
+// MediatR is a library that implements the Mediator pattern, 
+// which allows for decoupling of request handling and response processing in an application. 
+
+// Nuget Package: MediatR
+// MediatR is often used in conjunction with the CQRS pattern, as it provides a way to send requests and receive 
+// responses without having to know the details of how the requests are handled.  
+
+// In a traditional architecture, the flow of data and control is typically as follows:
+// Controller -> Service Interface -> Service Implementation -> Repository Interface -> Repository Implementation -> DbContext
+// In a CQRS architecture using MediatR, the flow of data and control is typically as follows:
+// Controller -> MediatR -> Command/Query Handler -> Repository Interface -> Repository Implementation -> DbContext
+
+// The main difference between the two architectures is that in a traditional architecture, the controller 
+// directly calls the service interface,  
+// which then calls the service implementation and repository interface. In a CQRS architecture using MediatR, 
+// the controller sends a command or query to MediatR,
+// which then invokes the appropriate command or query handler to handle the request. 
+// This allows for better separation of concerns and more flexible handling of requests,
+// as the command or query handlers can be implemented independently of the controller and service layers. 
+// Additionally, CQRS allows for better scalability and performance by separating read and write operations 
+// into different models, while a traditional architecture may not provide the same level of optimization 
+// for read and write operations.
+
+// In summary, while both architectures can be used to build applications, a CQRS architecture using 
+// MediatR provides better separation of concerns and more flexible handling of requests, while a traditional 
+// architecture may be simpler to implement but may not provide the same level of optimization for read and write operations.  
+// 
+
+//? Which approach is better, traditional architecture or CQRS architecture using MediatR?
+// The choice between a traditional architecture and a CQRS architecture using MediatR depends on the
+// specific requirements and complexity of the application being built.
+// A traditional architecture may be simpler to implement and may be sufficient for applications with
+// straightforward business logic and low scalability requirements. It can be easier to understand and maintain, especially
+// for smaller teams or projects with limited resources. However, it may not provide the same level of 
+// optimization for read and write operations,  
+// On the other hand, a CQRS architecture using MediatR may be more suitable for applications with complex business logic, 
+// high scalability requirements, or the need for optimized read and write operations.
+// 
+
+//# I thought controller-service-repository was the standard way to build .NET applications. Why is CQRS becoming more popular?
+// While the controller-service-repository pattern has been a standard way to build .NET applications,
+// CQRS is becoming more popular due to its ability to provide better separation of concerns, scalability, 
+// and performance optimization for read and write operations.  
+// CQRS allows for more flexible handling of requests, as the command and query handlers can be implemented 
+// independently of the controller and service layers. 
+// 
+
+//# is there any other way which industry is using to build .NET applications?
+// Yes, there are other architectural patterns and approaches that the industry is using to build .NET
+// applications, depending on the specific requirements and complexity of the application being built. Some of these approaches include:
+// 1. Clean Architecture: This approach emphasizes separation of concerns and the use of interfaces to decouple the different 
+// layers of the application. It promotes a clear separation between the domain, application, and infrastructure layers, 
+// allowing for better maintainability and testability.
+// 2. Hexagonal Architecture (Ports and Adapters): This approach focuses on creating a
+// flexible and modular architecture by defining clear boundaries between the core domain logic and the external 
+// systems (e.g., databases, APIs). It allows for easier testing and integration with different external systems. 
+// 3. Microservices Architecture: This approach involves breaking down the application into smaller, independent 
+// services that can be developed, deployed, and scaled independently. Each service is responsible for a specific 
+// business capability and communicates with other services through APIs or messaging systems. 
+// This approach allows for better scalability, fault isolation, and flexibility in technology choices.  
+// 
+
+//? How to implement CQRS in .NET using MediatR?
+// To implement CQRS in .NET using MediatR, you can follow these steps:
+// 1. Install the MediatR NuGet package:
+//    Install-Package MediatR
+
+// How to install MediatR in .NET 6 or .NET 7?
+// You can install MediatR in .NET 6 or .NET 7 using the NuGet Package Manager or the .NET CLI. Here are the steps for both methods:
+// NuGet Package Manager:
+// Install-Package MediatR
+// .NET CLI:
+// dotnet add package MediatR
+
+// 2. Define your command and query classes:
+// public class CreateProductCommand : IRequest<Product> { 
+// Properties for the product to be created
+// int Id { get; set; }
+//  }
+// public class GetProductByIdQuery : IRequest<Product> { 
+// Properties for the product ID
+// int Id { get; set; }
+
+//  }
+
+// 3. Implement the command and query handlers:
+// public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand, Product> { ... }
+// public class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, Product> { ... }
+
+// 4. Register MediatR in the Startup.cs or Program.cs:
+// services.AddMediatR(typeof(Startup).Assembly);
+
+// 5. Use MediatR in your controller:
+// public class ProductsController : ControllerBase
+// {
+//     private readonly IMediator _mediator;
+//     public ProductsController(IMediator mediator)
+//     {
+//         _mediator = mediator;
+//     }
+//     public async Task<IActionResult> CreateProduct(CreateProductCommand command)
+//     {
+//         var result = await _mediator.Send(command);
+//         return Ok(result);
+//     }
+// }

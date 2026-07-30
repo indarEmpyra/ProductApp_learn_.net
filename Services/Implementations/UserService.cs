@@ -524,7 +524,7 @@ namespace ProductApp.Services.Implementations
 
 
 
-//! LINQ db methods
+//? LINQ db methods
 
 // Where: filters records based on a condition.
 // Example: _users.Where(u => u.IsActive) retrieves all active users.
@@ -594,7 +594,72 @@ namespace ProductApp.Services.Implementations
 // Example: Using SqlBulkCopy in ADO.NET to insert a DataTable of products into the database in one operation, 
 // which is much faster than inserting records one by one.
 
+// Include(): Eagerly loads related data based on foreign key relationships.
+// Example: _context.Orders.Include(o => o.Customer).ToList() retrieves orders along with their 
+// associated customer data in a single query, avoiding the N+1 problem. 
 
+//# what is N+1 problem?
+// The N+1 problem occurs when an application makes one query to retrieve a list of entities
+// (the "1" query), and then makes additional queries (the "N" queries) for each entity to retrieve related data.
+// This results in N+1 total queries, which can lead to performance issues, especially with
+// large datasets. For example, if you retrieve 10 orders and then for each order, you query the database to get the customer details,
+// you end up with 1 query for the orders and 10 additional queries for the customers
+// (totaling 11 queries). This can be mitigated by using eager loading with Include() to fetch related data in a single query.
+
+
+//# If we want to include data/snippet of data from multiple tables, how to use include for multiple tables?
+// You can chain multiple Include() calls to include related data from multiple tables.
+// Example: _context.Orders
+//     .Include(o => o.Customer) // Include related Customer data
+//     .Include(o => o.OrderItems) // Include related OrderItems data
+//     .ThenInclude(oi => oi.Product) // Include related Product data for each Order
+//    .ToList() retrieves orders along with their associated customer, 
+// order items, and product data in a single query, avoiding the N+1 problem. 
+
+//# If you have multiple levels of related data, you can use ThenInclude() to specify the next level of navigation property to include.
+// Example: _context.Orders
+//     .Include(o => o.Customer) // Include related Customer data
+//    .Include(o => o.OrderItems) // Include related OrderItems data
+//    .ThenInclude(oi => oi.Product) // Include related Product data for each OrderItem
+//   .ToList() retrieves orders along with their associated customer, order items, and product data in a single query, avoiding the N+1 problem.  
+
+//# When we keep including multiple tables, does it fetch all the data from those tables or only the relevant data?
+// When you use Include() and ThenInclude() to fetch related data from multiple tables,
+// it only fetches the relevant data based on the relationships defined in your entity models and the specific query you are executing.
+// It does not fetch all the data from those tables. The generated SQL query will include JOIN statements that 
+// retrieve only the necessary columns and rows based on the relationships and filters applied in your LINQ query.  
+// For example, if you have an Order entity that has a relationship with Customer and OrderItems,
+// and you use Include() to fetch related data, the query will only retrieve the orders along with their associated 
+// customers and order items,
+// rather than fetching all customers and order items from the database. This helps to optimize performance and 
+// reduce memory usage by only loading the data that is needed for the specific operation. 
+
+//# Example of fetching only relevant data with Include() like we are fetching only the customer name and age:
+// var ordersWithCustomerInfo = _context.Orders
+//     .Include(o => o.Customer)
+//     .Select(o => new
+//     {
+//         OrderId = o.Id,
+//         CustomerName = o.Customer.Name,
+//        CustomerAge = o.Customer.Age
+//     })
+//     .ToList();
+
+
+
+//# Point to note:
+// Until you call ToList() or any other terminal operation, the query is not executed and no data is fetched from the database.
+// And, you can further refine the query by using projections (Select) to fetch only the necessary columns.
+
+// So, no matter how many Include() calls you make, it will only fetch the relevant data based on the 
+// relationships and filters applied in your query,
+// and it will not fetch all the data from those tables. 
+// This allows you to efficiently retrieve related data without loading unnecessary information into memory, 
+// which can improve performance and reduce resource usage in your application. 
+
+// Even if you have multiple includes, you are hitting the database only once when you call ToList() or any other terminal operation,
+// and the generated SQL query will include the necessary JOIN statements to fetch the related data in a
+// single query, avoiding the N+1 problem and optimizing performance.
 
 
 
