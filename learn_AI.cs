@@ -16,7 +16,8 @@
 // Now, when a user asks a question, we can retrieve the relevant instructions from the vector database and append them to the 
 // prompt or context for the AI model to generate a more accurate and contextually relevant response. 
 
-//3. Agent based AI: This type of AI involves creating autonomous agents that can perform tasks, make decisions, and interact with their environment.
+//3. Agent based AI: 
+// This type of AI involves creating autonomous agents that can perform tasks, make decisions, and interact with their environment.
 
 
 //? API based AI usage:
@@ -239,5 +240,7 @@ To generate a job description, please follow these guidelines:
 // the instructions and may return irrelevant results if the keywords are not present in the instructions.  
 
 
-//! If we don't retrieve or don't efficiently retrieve instructions for RAG, we will end up sending all whole instructions to the generative model, 
-//! which can lead to increased latency and higher costs, as well as potentially overwhelming the model with too much information.
+//! If we don't retrieve or don't efficiently retrieve instructions for RAG, we will end up sending 
+//! all whole instructions to the generative model, 
+//! which can lead to increased latency and higher costs, as well as potentially overwhelming the model 
+//! with too much information.
