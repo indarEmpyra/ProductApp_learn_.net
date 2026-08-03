@@ -62,8 +62,13 @@ namespace ProductApp.Services.Interfaces
     // Task<bool> indicates that this method is asynchronous and returns a boolean value when awaited.
     // The method name DeleteUserAsync follows the convention of ending with "Async" to indicate that it is an asynchronous method.
     // This method is likely responsible for deleting a user record from the data source based on the provided id parameter.
-    // It takes an id parameter to identify which user to delete and returns true if the deletion was successful, 
-    // or false if the user with the specified id does not exist or if the deletion failed for some reason.  
+    // It takes an id parameter to identify which user to delete and returns true if the deletion was successful,
+    // or false if the user with the specified id does not exist or if the deletion failed for some reason.
+
+    // FSM entry point: moves a user to newStatus if — and only if — UserStateMachine says the
+    // transition from their current status is legal. Throws InvalidOperationException otherwise.
+    // Returns null if no user with that id exists (same "not found" convention as UpdateUserAsync).
+    Task<User?> ChangeUserStatusAsync(int id, UserStatus newStatus);
   }
 }
 

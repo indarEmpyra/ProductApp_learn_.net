@@ -710,3 +710,100 @@
 // Swap to Production
 
 // This is one of the most common enterprise deployments for ASP.NET Core applications on Azure.
+
+
+
+
+
+
+
+// Steps for deploying ProductApp to local IIS
+// #	Step	What it does	Status
+// 1	Enable IIS Windows feature	Installs the actual web server software (wasn't present on this machine at all)	✅ Done
+// 2	Install .NET 9.0 Hosting Bundle	Installs the ASP.NET Core Module (ANCM) — the IIS plugin that forwards requests into a .NET process — plus the matching runtime	✅ Done
+// 3	dotnet publish -c Release	Builds a clean, deployment-ready copy of the app (optimized, with auto-generated web.config) into C:\inetpub\ProductApp	✅ Done
+// 4	Install SQL Server Express	Your app uses EF Core + SQL Server, but only LocalDB existed (dev-only, tied to your login). IIS runs under a different account, so a real SQL instance was needed. Installed as instance SQLEXPRESS	✅ Done
+// 5	Create App Pool (ProductAppPool, No Managed Code) + Site (ProductApp, port 8080)	The app pool is the worker process that runs your code; "No Managed Code" tells IIS not to load the old .NET Framework CLR, since ASP.NET Core manages its own runtime	✅ Done
+// 6	Update appsettings.json connection string	Point it at .\SQLEXPRESS instead of (localdb)\mssqllocaldb	⏳ Next
+// 7	Run EF Core migrations	Creates the actual database/schema on the new SQL Server Express instance (it's empty right now)	⏳ Pending
+// 8	Grant the app pool identity SQL Server access	IIS AppPool\ProductAppPool needs a SQL login + permissions on the database	⏳ Pending
+// 9	Browse http://localhost:8080	Confirm the app actually loads end-to-end	⏳ Pending
+// The LocalDB alternative (what we didn't take, and why)
+// You can skip installing SQL Server Express and keep using (localdb)\mssqllocaldb, but it requires bending IIS's normal security model:
+
+// LocalDB is a per-user, on-demand SQL instance — it isn't a Windows service, it spins up under whichever Windows account first touches it, and by default only that account (and processes running as that account) can connect to it.
+// IIS app pools normally run as a virtual identity (ApplicationPoolIdentity), which is not your Windows account — so it simply can't see your LocalDB instance.
+// To make it work, you'd have to:
+// In IIS Manager → Application Pool → Advanced Settings → set Identity to your own Windows account (instead of ApplicationPoolIdentity), and set Load User Profile = True.
+// This means the site now runs with your personal Windows credentials — fine for a quick solo test on your own machine, but it's not how real deployments work (a server shouldn't run web apps under a named person's login), and it breaks the moment that person's password changes or the account is disabled.
+// It also doesn't reflect real-world practice — every actual IIS/production deployment uses a proper SQL Server instance (Express, Standard, or Azure SQL), not LocalDB. That's exactly why I steered toward installing SQL Server Express: it's the same pattern you'd use later on a real server, just free and local.
+
+
+/*_______________________________________________________________________________________________________________________________ */
+
+//? Local IIS deployment — repeatable runbook (worked example: ProductApp)
+
+// Mental model:
+// Browser -> IIS (port 8080) -> ASP.NET Core Module (ANCM) -> app process (Kestrel, in-process) -> EF Core -> SQL Server
+// IIS never runs your C# code directly. It's a front door that hands requests to ANCM, which boots your app's
+// own runtime inside the IIS worker process. That's why the app pool is set to "No Managed Code" —
+// IIS's old .NET Framework CLR has nothing to do with ASP.NET Core.
+
+//# Part A: One-time machine setup (per server, not per app)
+// 1. Enable IIS (Windows feature) — the web server software itself.
+// 2. Install the .NET Hosting Bundle matching your <TargetFramework> major version (e.g. net9.0 -> 9.0 Hosting Bundle,
+//    not just "current", which may resolve to a newer major version like 10).
+//    Installs ANCM (the IIS plugin) + the matching ASP.NET Core shared runtime.
+// 3. Install a real database server if your app needs one (e.g. SQL Server Express).
+//    LocalDB is dev-only — tied to a Windows user session, unreachable by the IIS app pool identity.
+
+// Gotcha hit: the small SQL Server bootstrap installer (SSEI, ~4MB stub) failed silently — likely a corporate
+// proxy blocking its internal download-the-real-media step. Fix: use the full self-contained installer instead
+// (SQLEXPR_x64_ENU.exe, ~300MB, same official download.microsoft.com domain, no secondary download needed).
+
+//# Part B: Per-application deployment (repeat for every app / every release)
+
+// 1. Publish a Release build:
+//    dotnet publish -c Release -o C:\inetpub\<AppName>
+//    Different from bin/Debug — optimized, and the SDK auto-generates web.config telling ANCM how to launch
+//    the app (dotnet YourApp.dll).
+
+// 2. Create an App Pool — one per app, "No Managed Code". Isolation: one app's crash doesn't take others down.
+
+// 3. Create the Site — physical path = publish folder, bind to a port above 1024 (avoids extra permissions needed).
+
+// 4. Fix folder permissions if needed — app pool runs as virtual identity "IIS AppPool\<PoolName>";
+//    needs read access to the publish folder (usually inherited automatically under C:\inetpub).
+
+// 5. Point config at a reachable database:
+//    - Don't edit appsettings.json directly. Add appsettings.Production.json instead.
+//    - IIS defaults to the "Production" environment (no ASPNETCORE_ENVIRONMENT set = Production), so this file
+//      overlays only in that context — local `dotnet run` (Development) stays on LocalDB, untouched.
+//    - Use a connection string the app pool identity can actually authenticate with.
+
+// 6. Apply EF Core migrations to the target database:
+//    dotnet ef database update --connection "<production connection string>"
+//    --connection overrides just for this command — no need to touch config files to run it.
+
+// Gotcha hit: EF Core refused to migrate ("pending model changes") because a model change (new Role entity)
+// had never been captured in a migration. Fix: run `dotnet ef migrations add <Name>` first whenever you see
+// that error, then re-run `database update`.
+
+// 7. Grant the app pool identity a database login (Windows Authentication):
+//    CREATE LOGIN [IIS AppPool\<PoolName>] FROM WINDOWS;
+//    USE YourDb;
+//    CREATE USER [AppUser] FOR LOGIN [IIS AppPool\<PoolName>];
+//    ALTER ROLE db_owner ADD MEMBER [AppUser];
+//    Most commonly forgotten step — the app pool identity is virtual and doesn't exist in SQL Server until
+//    you explicitly create a login for it.
+
+// 8. Restart the app pool (Restart-WebAppPool -Name <PoolName>) so it picks up the new web.config/connection
+//    string, then hit a REAL endpoint (not "/" — check controllers for actual routes, e.g. /api/product) to
+//    confirm it works end-to-end. Root "/" returning 404 is normal for a controller-only API with no default route.
+
+//# What to repeat next time you deploy a code change
+// Only steps 1, 6 (if models changed), and 8 — app pool/site/permissions/DB login are one-time setup per app:
+//    dotnet publish -c Release -o C:\inetpub\<AppName>
+//    dotnet ef migrations add <Name>                    (only if models changed)
+//    dotnet ef database update --connection "..."        (only if models changed)
+//    Restart-WebAppPool -Name <PoolName>

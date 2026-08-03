@@ -461,6 +461,28 @@ namespace ProductApp.Controllers
 
       return ApiResponseHelper.Success(message: $"User {id} deleted successfully");
     }
+
+    // FSM-driven endpoint: the caller states the desired end state (e.g. "Active"), and
+    // UserStateMachine — not this controller — decides whether getting there from the user's
+    // current state is legal. An illegal request (e.g. Deactivated -> Active) surfaces as a 400,
+    // not a silently-ignored no-op.
+    [HttpPatch("{id}/status")]
+    public async Task<IActionResult> ChangeUserStatus(int id, [FromBody] ChangeUserStatusRequest request)
+    {
+      try
+      {
+        var updated = await _userService.ChangeUserStatusAsync(id, request.Status);
+        if (updated == null) return ApiResponseHelper.NotFound();
+
+        var response = updated.ToUserResponse();
+        return ApiResponseHelper.Success(response, $"User status changed to {request.Status}");
+      }
+      catch (InvalidOperationException ex)
+      {
+        // Thrown by UserStateMachine.Transition when the requested move isn't in the transition table.
+        return ApiResponseHelper.BadRequest(ex.Message);
+      }
+    }
   }
 }
 

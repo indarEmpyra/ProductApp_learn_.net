@@ -17,7 +17,7 @@ build/
 # In a .NET web application, you should exclude obj and certain user-specific files in Properties,
 # but you must generally include the Migrations folder. 
 
-# Folder Breakdown
+#? Folder Breakdown
 # obj/ (Exclude): This folder contains temporary files and artifacts generated during the build process. These are auto-generated on every developer's machine and should never be committed as they cause merge conflicts and bloat the repository.
 # Properties/ (Partial Exclude):
 # Keep: Essential project metadata like AssemblyInfo.cs or launchSettings.json (unless it contains sensitive secrets).

@@ -1,3 +1,5 @@
+using ProductApp.Models;
+
 namespace ProductApp.ResponseDTO
 {
   public class UserResponse
@@ -9,5 +11,6 @@ namespace ProductApp.ResponseDTO
     // public string? PhoneNumber { get; set; }
     public DateTime CreatedDate { get; set; }
     public bool IsActive { get; set; }
+    public UserStatus Status { get; set; }
   }
 }

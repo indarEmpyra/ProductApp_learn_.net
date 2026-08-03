@@ -25,7 +25,8 @@ namespace ProductApp.Helpers
         // Email = user.Email, // Uncomment if needed
         // PhoneNumber = user.PhoneNumber, // Uncomment if needed
         CreatedDate = user.CreatedDate,
-        IsActive = user.IsActive
+        IsActive = user.IsActive,
+        Status = user.Status
       };
     }
 

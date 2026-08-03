@@ -1,6 +1,7 @@
 using ProductApp.Data;
 using ProductApp.Models;
 using ProductApp.Services.Interfaces;
+using ProductApp.StateMachine;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
@@ -436,6 +437,19 @@ namespace ProductApp.Services.Implementations
       _context.Users.Remove(user);
       await _context.SaveChangesAsync();
       return true;
+    }
+
+    public async Task<User?> ChangeUserStatusAsync(int id, UserStatus newStatus)
+    {
+      var user = await _context.Users.FindAsync(id);
+      if (user == null) return null;
+
+      // All the business rule lives in UserStateMachine, not here. The service's job is
+      // orchestration (load -> transition -> save), not deciding which moves are legal.
+      UserStateMachine.Transition(user, newStatus);
+
+      await _context.SaveChangesAsync();
+      return user;
     }
   }
 }

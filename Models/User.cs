@@ -118,6 +118,11 @@ namespace ProductApp.Models
 
     public bool IsActive { get; set; } = true;
 
+    // FSM-controlled field. Never set this directly outside of UserStateMachine —
+    // that's what guarantees only legal transitions ever get persisted.
+    // See StateMachine/UserStateMachine.cs and learn_FSM.cs for the full walkthrough.
+    public UserStatus Status { get; set; } = UserStatus.PendingVerification;
+
     // Date Created (UTC)
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
