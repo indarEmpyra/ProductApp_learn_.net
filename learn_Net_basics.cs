@@ -1,3 +1,27 @@
+
+//? Optional chaining and Null coalescing operators
+// // If customer, Address, or City is null, result will be null
+// string? city = customer?.Address?.City;
+
+// // It works seamlessly with method calls too
+// customer?.SendEmail();
+
+
+// // Safely accesses the first order if the orders list is not null
+// Order? firstOrder = customer?.Orders?[0];
+
+// // If any part of the chain is null, it falls back to "Unknown"
+// string city = customer?.Address?.City ?? "Unknown";
+
+// // customer.Age is an 'int', but age becomes 'int?' because customer might be null
+// int? age = customer?.Age; 
+
+
+//? Ternary operator
+int time = 20;
+string greeting = (time < 18) ? "Good day." : "Good evening.";
+
+
 //? Classes?
 // Classes are reference types that can contain fields, properties, methods, events, and other members. 
 // They are used to create objects that can have state and behavior. 
@@ -501,6 +525,14 @@
 // var evenNumbers = numbers.Where(n => n % 2 == 0).ToList();
 // In this example, we use LINQ to filter the list of numbers and create a new list that contains only the even numbers. 
 // The lambda expression n => n % 2 == 0 is used to specify the condition for filtering the numbers.  
+
+
+//? Attributes in C#
+// Attributes are a way to add metadata to your code, which can be used to provide additional information about classes, methods, properties, and other code elements.
+// Example:
+// [Obsolete("This method is obsolete. Use NewMethod instead.")]
+// [Authorize(Roles = "Admin")]
+// 
 
 
 /***************************************************************************/
