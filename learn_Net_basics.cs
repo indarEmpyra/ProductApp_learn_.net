@@ -21,6 +21,15 @@
 int time = 20;
 string greeting = (time < 18) ? "Good day." : "Good evening.";
 
+//? String methods:
+// string.IsNullOrEmpty()
+// string.IsNullOrWhiteSpace()
+// string.Substring()
+// string.Replace()
+// string.Split()
+// string.Join()
+// string.Trim()
+// string.contains()
 
 //? Classes?
 // Classes are reference types that can contain fields, properties, methods, events, and other members. 
@@ -89,7 +98,7 @@ string greeting = (time < 18) ? "Good day." : "Good evening.";
 //     public void PublicMethod() { /* ... */ } // Can be called from anywhere
 //     private void PrivateMethod() { /* ... */ } // Can only be called within this class
 //     protected void ProtectedMethod() { /* ... */ } // Can be called within this class and derived classes
-//     internal void InternalMethod() { /* ... */ } // Can be called within the same assembly  
+//     internal void InternalMethod() { /* ... */ } // Can be called within the same assembly  - assembly means compiled project, the class which is compiled into a dll or exe file
 //     protected internal void ProtectedInternalMethod() { /* ... */ } // Can be called within the same assembly and derived classes
 // }
 
@@ -116,6 +125,29 @@ string greeting = (time < 18) ? "Good day." : "Good evening.";
 // {
 //     public static void StaticMethod() { /* ... */ } // Can be called without instantiating the class
 // }
+
+// public class AnotherClass
+// {
+//     public void CallStaticMethod()
+//     {
+//         ExampleClass.StaticMethod(); // Can be called without instantiating the class
+//     }
+// }
+
+//Note: When a class is made static, it means that the class cannot be instantiated and can only contain static members (methods, properties, fields, etc.).
+
+//# String must be a static method to be called without instantiation then how are we able to create string using string str = new String()?
+// You cannot call a regular instance method on a class without making an object first. However, string in C# is special. new string(...) works because it calls a constructor, which is a special creation method, not a normal method.Why new string(...) worksA constructor is a special method used to build a new object.
+
+//# How are we able to call IsNullOrEmpty() method without instantiation of string class?
+// You can call string.IsNullOrEmpty() without instantiating a string object because it is a static method.How It WorksStatic Keyword: In C#, the IsNullOrEmpty method is defined with the static keyword inside the String class.Class-Level Belonging: Static methods belong to the class itself, not to any specific instance of the class.No Instance Needed: You call static methods by using the class name directly (e.g., string.IsNullOrEmpty(...)) instead of a variable name.
+//Code Example
+// csharp
+// You do not need to create an object like this:
+// string str = new string(); 
+
+// Instead, you call it directly on the class:
+// bool isEmpty = string.IsNullOrEmpty(""); 
 
 //? Extension method
 // Extension methods allow you to add new methods to existing types without modifying the original type or creating a new derived type.
@@ -173,14 +205,99 @@ string greeting = (time < 18) ? "Good day." : "Good evening.";
 
 // public class TaskService : ITaskService
 // {
-//     public IEnumerable<string> Get()
+//     public Task<List<Task>> GetTasks() // must be "GetTasks" and not "GetTask" because the interface defines it as "GetTasks"
 //     {
-//         return new[] { "Hot", "Cold", "Rainy" };
+//         // must return Task<List<Task>>
+//         return Task.FromResult(new List<Task>());
 //     }
 // }
+
 // Interface → ITaskService
 // Implementation → TaskService
 
+//# What does implementation mean?
+// Implementation refers to the actual code that defines how a method or property behaves when it is called. In the context of interfaces, implementation means providing the specific details of how each method defined in the interface should be executed.
+
+//#Will the derived class have to implement all methods of the interface?
+// Yes — implementing an interface means implementing every member it declares. A class can't compile if it's missing even one.
+
+// public interface ITaskService
+// {
+//     Task<List<Task>> GetTasks();
+//     Task<Task> GetTaskById(int id);
+//     Task AddTask(Task task);
+// }
+
+// public class TaskService : ITaskService
+// {
+//     public Task<List<Task>> GetTasks() { ... }
+//     public Task<Task> GetTaskById(int id) { ... }
+//     // missing AddTask → compiler error:
+//     // "'TaskService' does not implement interface member 'ITaskService.AddTask(Task)'"
+// }
+
+//Note: A few exceptions/nuances worth knowing:
+
+//# Abstract classes are exempt. An abstract class can implement some members and leave the rest abstract, deferring full implementation to whatever concrete class derives from it.
+
+//# what does partial keyword mean in c#?
+// In C#, the partial keyword allows you to split the definition of a class, struct, interface, or method across multiple physical files. When your application is compiled, the C# compiler gathers all these scattered pieces and merges them into a single, cohesive type.💡 Why Use the partial Keyword?The partial modifier exists primarily to solve two real-world development challenges:Separation of Auto-Generated Code: Code-generation tools (like the Windows Forms Designer or Entity Framework) can output UI layouts or database models into one file. You can then write your custom business logic in a completely separate file. When the tool regenerates its file, your manual code is never overwritten.Large Codebases & Collaboration: It allows multiple developers to work on different aspects of the same massive class simultaneously without triggering file conflicts in source control.📂 How Partial Classes Work (Example)Instead of cramming everything into one file, you mark the class with partial in both files:File 1: Employee_Authentication.cscsharpnamespace Company.Project
+
+// {
+//     public partial class Employee
+//     {
+//         public string Username { get; set; }
+
+//         public void Login() 
+//         {
+//             // Login logic here
+//         }
+//     }
+// }
+// Use code with caution.File 2: Employee_Payroll.cscsharpnamespace Company.Project
+// {
+//     public partial class Employee
+//     {
+//         public decimal Salary { get; set; }
+
+//         public void ProcessPayment() 
+//         {
+//             // Payroll logic here
+//         }
+//     }
+// }
+// Use code with caution.The Compiled Result:The compiler treats this as a single Employee class containing Username, Salary, Login(), and ProcessPayment().⚠️ Strict Rules for Partial TypesFor the compiler to successfully merge your partial items, they must follow these strict requirements:Same Namespace & Assembly: Every partial part must share the exact same namespace and reside within the same compiled module or project assembly.Matching Modifiers: Access levels (such as public, private, or internal) must match exactly across all parts.Inheritance Merging: If one part inherits an interface, the entire combined class implements it. If one part declares a base class, all parts inherit that base class.Abstract/Sealed Cascade: If you mark a single part as abstract or sealed, the final merged class becomes abstract or sealed automatically.⚙️ What is a Partial Method?The partial keyword can also be applied to methods. This is heavily utilized by code generators to create optional lifecycle hooks:The Signature: A tool declares a method signature in the auto-generated file.The Option: You can optionally implement that method in your custom file to run code when that event happens.The Compilation Magic: If you choose not to implement the partial method, the compiler completely erases the signature and all calls to it. This means zero performance penalty at runtime.csharp// Inside the auto-generated file:
+// partial void OnNameChanged(); 
+
+// // Inside your custom file (Optional):
+// partial void OnNameChanged()
+// {
+//     Console.WriteLine("Name changed!");
+// }
+
+
+// public abstract class TaskServiceBase : ITaskService
+// {
+//     public abstract Task<List<Task>> GetTasks();
+//     public Task<Task> GetTaskById(int id) => ...; // implemented here
+//     public abstract Task AddTask(Task task);
+// }
+// Default interface members (C# 8+). An interface can provide a body itself; implementers then only need to override it if they want different behavior.
+
+
+// public interface ITaskService
+// {
+//     Task<List<Task>> GetTasks();
+//     Task LogAccess() => Task.CompletedTask; // has a default body
+// }
+// Here TaskService only has to implement GetTasks().
+
+// Explicit interface implementation still counts. Writing Task<List<Task>> ITaskService.GetTasks() satisfies the requirement — it's just only callable through an ITaskService reference, not directly off the class.
+
+// So for a plain, non-abstract class with a plain interface (no default bodies), the rule is strict: implement all of it, or it won't compile.
+
+
+//# Another example:
 
 // public IEnumerable<string> Get()
 
@@ -289,14 +406,22 @@ string greeting = (time < 18) ? "Good day." : "Good evening.";
 
 //? Nullable reference types
 // Nullable reference types are a feature in C# that allows you to indicate whether a reference type can be null or not.
-// By enabling nullable reference types, you can improve code safety and reduce the likelihood of null reference exceptions by 
-// explicitly marking reference types as nullable or non-nullable.
+// By enabling nullable reference types, you can improve code safety and reduce the likelihood of null reference exceptions by explicitly marking reference types as nullable or non-nullable.
+
+// Example:
+// public class Person
+// {
+//     public string Name { get; set; } // Non-nullable reference type
+//    public string? Nickname { get; set; } // Nullable reference type
+// 
+
 // Use case: Nullable reference types are useful for improving code safety and reducing the likelihood of null reference exceptions. 
 // They allow you to explicitly indicate whether a reference type can be null or not, which can help catch potential null reference issues at compile time.
 // For example, if you have a method that takes a string parameter, you can mark it as nullable (string?) to indicate that it can accept null values, 
 // or you can mark it as non-nullable (string) to indicate that it should not accept null values.
 // By using nullable reference types, you can catch potential null reference issues at compile time, improving code safety and 
 // reducing the likelihood of runtime exceptions caused by null references. 
+
 
 
 
@@ -378,6 +503,10 @@ string greeting = (time < 18) ? "Good day." : "Good evening.";
 // not be null. By enabling nullable reference types, you can use the non-nullable reference type syntax to indicate that a parameter should not accept null values.
 // Example:
 // public void PrintName(string name)
+
+// Make something nullable:
+// public void PrintName(string? age)
+
 // In this example, the parameter "name" is of type string, which is a non-nullable reference type.
 // This means that when you call the PrintName method, you must provide a non-null string value for the "name" parameter. 
 // If you try to pass null to this method, the compiler will generate a warning, indicating that you are trying to assign a null 
@@ -553,6 +682,7 @@ string greeting = (time < 18) ? "Good day." : "Good evening.";
 //     }
 
 //     [HttpGet]
+//     [Authorize(Roles = "Admin,User")]
 //     public async Task<IActionResult> GetTasks()
 //     {
 //         var tasks = await _taskService.GetTasks();
@@ -752,6 +882,35 @@ string greeting = (time < 18) ? "Good day." : "Good evening.";
 // On the other hand, a CQRS architecture using MediatR may be more suitable for applications with complex business logic, 
 // high scalability requirements, or the need for optimized read and write operations.
 // 
+
+
+//# CQRS (Command Query Responsibility Segregation) 
+// is a higher-level architectural pattern. It splits the conceptual model of your application into two distinct parts:
+// Commands: Data mutations (Create, Update, Delete).
+// Queries: Data reads (Select, Fetch).Here is a breakdown of what CQRS actually entails, how it differs from simple handler organization, and why it matters
+
+// The Real Difference:
+// Your Description (In-Process Messaging): Separating requests (interfaces/DTOs) from handlers (implementations) decouples your application layers. You can do this while still using the exact same database, tables, and ORM models for both reading and writing.
+// CQRS (Architectural Segregation): CQRS means the code path, business logic, and potentially the data storage for reading data are entirely separate from writing data.
+
+
+//# Levels of CQRS Implementation
+
+// CQRS is a spectrum. You can implement it at different levels of complexity:
+
+// 1.Logical Separation(Single Database)
+// Write Side: Uses a heavy ORM (like Entity Framework or Hibernate) to handle complex business rules, validation, and database transactions.
+// Read Side: Bypasses the heavy ORM entirely. It uses lightweight SQL queries (like Dapper) or views to fetch raw data directly into DTOs for maximum speed.
+
+// 2.Physical Separation(Dual Databases)
+// Write Database: A relational database optimized for fast updates and data integrity (normalized structure).
+// Read Database: A NoSQL database or cache optimized for lightning-fast search and retrieval (denormalized structure).
+// Synchronization: An event-driven mechanism (like Kafka or RabbitMQ) updates the read database whenever a command alters the write database (Eventual Consistency).⚖️ 
+
+// Why Use CQRS?
+// Optimized Performance: Read operations usually outnumber write operations 10:1.You can scale your read database independently.
+// Simplified Security: It is easier to ensure that only authorized commands can mutate state, while read endpoints remain isolated.
+// Schema Flexibility: The UI often requires data formatted differently than how it is stored. The read model can match the UI exactly.
 
 //# I thought controller-service-repository was the standard way to build .NET applications. Why is CQRS becoming more popular?
 // While the controller-service-repository pattern has been a standard way to build .NET applications,

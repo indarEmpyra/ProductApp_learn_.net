@@ -51,6 +51,8 @@ namespace ProductApp.Data
 
     public DbSet<User> Users { get; set; }
 
+    // public virtual DbSet<Product> Products { get; set; } - why virtual? The virtual keyword allows Entity Framework to create a proxy around the DbSet, enabling features like lazy loading.
+
     // DbSet<Product> Products means that there is a table called Products mapped to Product class
 
     // Override OnModelCreating if you need to configure your model further

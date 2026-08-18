@@ -9,7 +9,7 @@
 // .NET 8 ASP.NET Core runtime (app targets net8.0)	✅ Installed
 // So no hosting-bundle install needed — you just need to configure the site. Here are both paths.
 
-// Path A — IIS Express (fastest, best for local dev)
+//# Path A — IIS Express (fastest, best for local dev)
 // Since this project already has an IIS Express profile in launchSettings.json (bound to http://localhost:15133), the simplest route is via Visual Studio:
 
 // Open OneFlowAPI in Visual Studio (not VS Code — IIS Express integration is VS-specific; dotnet run cannot launch an IIS Express profile).
@@ -21,13 +21,13 @@
 
 // (A manual, VS-less iisexpress.exe /path:... /port:... route exists, but ad-hoc IIS Express sites don't reliably pick up the ANCM handler mapping the way a VS-generated applicationhost.config does — so I'd stick with the VS profile for IIS Express.)
 
-// Path B — Full IIS (production-like, matches your web.config)
+//# Path B — Full IIS (production-like, matches your web.config)
 // Your web.config already has hostingModel="InProcess", so this is just wiring IIS to point at a published build.
 
 // 1. Publish the app
 
 // dotnet publish "c:\Users\IndrjitKumar\EmpyraWork\.Net\OneFlowAPI\OneFlowAPI.csproj" -c Release -o "C:\inetpub\OneFlowAPI"
-// This produces a self-contained deployable folder (with OneFlowAPI.exe, web.config, and all dependencies) — don't just point IIS at your bin\Debug folder for anything beyond quick testing.
+// This produces a self-contained deployable folder (with OneFlowAPI.exe, web.config, and all dependencies) — don't just point IIS at your bin\Debug folder for anything beyond quick testing. This will contain all the .dlls and the ANCM web.config that IIS needs to host it in-process. You can also use Visual Studio's Publish wizard to do this, but I prefer the CLI for repeatable builds.
 
 // 2. Create a dedicated Application Pool
 // In IIS Manager (inetmgr) → Application Pools → Add Application Pool:

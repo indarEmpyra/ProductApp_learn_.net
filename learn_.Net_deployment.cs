@@ -939,6 +939,12 @@
 
 
 
+# region deployment files
+
+// When you run a dotnet build command on a .NET Core / .NET application, the build system compiles your source code and generates a set of binaries and supporting configuration files. These artifacts are placed in the bin/Debug/<framework>/ or bin/Release/<framework>/ directory.Here are all the standard files you will find in a .NET build folder:🚀 Primary BinariesProjectName.dll: The compiled application or library. It contains the code translated into Intermediate Language (IL).ProjectName.exe: The executable file (on Windows) used to run the application. On non-Windows platforms, an extensionless executable binary is generated instead.⚙️ Configuration & MetadataProjectName.runtimeconfig.json: An essential file telling the .NET host exactly which shared runtime version (e.g., .NET 8.0) and settings to use to run the application.ProjectName.deps.json: The dependency manifest. It lists all internal and external dependencies (like NuGet packages) and their exact versions.🛠️ Debugging & Compilation ArtifactsProjectName.pdb: Program Database (symbol) files. They map the compiled IL code back to your original C# source lines for debugging.ProjectName.xml: Optional XML documentation generated from your code comments (if enabled in your .csproj).📦 Dependencies & AssetsThird-Party .dll Files: Copy-local assemblies from NuGet packages or referenced projects needed at runtime.appsettings.json / appsettings.Development.json: Application configuration files copied from your project root (common in ASP.NET Core).wwwroot/ folder: For web applications, static assets like HTML, CSS, JavaScript, and images are copied over.What about the obj/ folder?While the bin/ folder contains your finalized deployment-ready output, the build also relies on an obj/ folder. This acts as a temporary workspace containing:project.assets.json: Generated during the package restore phase to map NuGet dependencies..nuget.g.props and .nuget.g.targets: Generated MSBuild scripts.Partial/Incremental build cache files: Used to make consecutive compiles faster.
+
+#endregion
+
 
 
 
