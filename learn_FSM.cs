@@ -196,3 +196,265 @@
 // the last 5 minutes (a "grace period" rule) — directly inside UserStateMachine.Transition, and see how
 // quickly a plain if-check bolted onto a table-driven FSM starts to feel like it wants Stateless's guard
 // clause API instead.
+
+
+/*_______________________________________________________________________________________________________________________________ */
+
+//? Dummy FSM definition, expressed as JSON (e.g. for a UI-driven diagram or a config-loaded FSM)
+
+// {
+//   "name": "UserStatus",
+//   "initialState": "PendingVerification",
+//   "states": ["PendingVerification", "Active", "Suspended", "Deactivated"],
+//   "transitions": [
+//     { "from": "PendingVerification", "to": "Active" },
+//     { "from": "PendingVerification", "to": "Deactivated" },
+//     { "from": "Active", "to": "Suspended" },
+//     { "from": "Active", "to": "Deactivated" },
+//     { "from": "Suspended", "to": "Active" },
+//     { "from": "Suspended", "to": "Deactivated" }
+//   ]
+// }
+
+
+/*_______________________________________________________________________________________________________________________________ */
+
+//? A different (and more common) shape: per-status "what can I do from here" config
+//
+// This is NOT hierarchical/nested states (that's Stateless's Active.Verified.Premium-style substate
+// feature — a separate, more advanced concept). It's the same flat transition table as the very first
+// JSON above, just re-keyed by status and with each status also listing the actions that are legal to
+// perform while in it. Still only one level of "current state," 3 levels of JSON nesting to express it:
+// status -> { actions, transitions } -> array entries.
+
+// {
+//   "name": "UserStatus",
+//   "initialState": "PendingVerification",
+//   "statuses": {
+//     "PendingVerification": {
+//       "actions": ["VerifyEmail", "Deactivate"],
+//       "transitions": ["Active", "Deactivated"]
+//     },
+//     "Active": {
+//       "actions": ["Suspend", "Close", "Deactivate"],
+//       "transitions": ["On-Hold", "Closed", "Deactivated"]
+//     },
+//     "On-Hold": {
+//       "actions": ["Reinstate", "Deactivate"],
+//       "transitions": ["Active", "Deactivated"]
+//     },
+//     "Closed": {
+//       "actions": [],
+//       "transitions": []
+//     },
+//     "Deactivated": {
+//       "actions": [],
+//       "transitions": []
+//     }
+//   }
+// }
+
+//# Why key by status with an inline "actions" list, instead of transitions-as-a-flat-array?
+// Because in practice a UI usually needs the answer to two different questions for whatever status the
+// record is currently in: "what buttons do I show" (actions) and "what statuses can this become" (transitions).
+// Keying the JSON by the current status puts both answers in one lookup (statuses["Active"]) instead of
+// filtering a flat transitions array by "from" every time you render a screen.
+
+//# Does "action" always map 1:1 to a "transition"?
+// Not necessarily — e.g. "VerifyEmail" might just resend a verification link (no status change) while
+// "Deactivate" always moves PendingVerification -> Deactivated. If you need that distinction, add a
+// "resultingStatus" (or null) field per action instead of assuming every action changes status:
+//
+//     "actions": [
+//       { "name": "VerifyEmail", "resultingStatus": null },
+//       { "name": "Deactivate", "resultingStatus": "Deactivated" }
+//     ]
+
+
+/*_______________________________________________________________________________________________________________________________ */
+
+//? Making the per-status { actions, transitions } shape above genuinely multi-level
+//
+// The previous JSON is only one level deep (a flat list of statuses). To go multi-level, a status
+// becomes a node that can itself contain child statuses — each child inherits the parent's actions/
+// transitions and adds its own on top. Example: "Active" splits into "Active.Unverified" and
+// "Active.Verified", and "Active.Verified" further splits into "Standard" and "Premium" tiers.
+
+// {
+//   "name": "UserStatus",
+//   "initialState": "PendingVerification",
+//   "statuses": {
+//     "PendingVerification": {
+//       "actions": ["VerifyEmail", "Deactivate"],
+//       "transitions": ["Active", "Deactivated"]
+//     },
+//     "Active": {
+//       "actions": ["Suspend", "Close", "Deactivate"],
+//       "transitions": ["On-Hold", "Closed", "Deactivated"],
+//       "statuses": {
+//         "Unverified": {
+//           "actions": ["SubmitKyc"],
+//           "transitions": ["Verified"]
+//         },
+//         "Verified": {
+//           "actions": ["Upgrade", "Downgrade"],
+//           "transitions": [],
+//           "statuses": {
+//             "Standard": {
+//               "actions": ["UpgradeToPremium"],
+//               "transitions": ["Premium"]
+//             },
+//             "Premium": {
+//               "actions": ["DowngradeToStandard"],
+//               "transitions": ["Standard"]
+//             }
+//           }
+//         }
+//       }
+//     },
+//     "On-Hold": {
+//       "actions": ["Reinstate", "Deactivate"],
+//       "transitions": ["Active", "Deactivated"]
+//     },
+//     "Closed": { "actions": [], "transitions": [] },
+//     "Deactivated": { "actions": [], "transitions": [] }
+//   }
+// }
+//
+// A user sitting in "Active.Verified.Premium" can therefore:
+// - perform "DowngradeToStandard" (declared on Premium itself)
+// - perform "Upgrade"/"Downgrade" (inherited from its parent, Verified)
+// - perform "Suspend"/"Close"/"Deactivate" (inherited from Active, Verified's parent)
+// i.e. actions/transitions accumulate down the tree — a child never loses what its ancestors granted it,
+// it only adds more specific ones.
+
+//# Where would this actually live in code (not just JSON)?
+// A recursive type models it directly:
+//
+//     public class StatusNode
+//     {
+//         public string Name { get; set; }
+//         public List<string> Actions { get; set; } = new();
+//         public List<string> Transitions { get; set; } = new();
+//         public Dictionary<string, StatusNode> Statuses { get; set; } = new();
+//     }
+//
+// "What actions are legal from Active.Verified.Premium" becomes: walk from the root down the dotted
+// path (Active -> Verified -> Premium), concatenating each node's Actions list as you descend. This is
+// exactly the "hierarchical states" feature the Stateless library gives you out of the box (via
+// `.Substate(...)` — https://github.com/dotnet-state-machine/stateless#hierarchical-states) — worth
+// reaching for once you're hand-rolling this walk yourself more than once.
+
+
+/*_______________________________________________________________________________________________________________________________ */
+
+//? Mapping this JSON tree to an actual DB row (e.g. Users.Status)
+//
+// Two separate questions hide inside "how do we map it": (1) what does the DB column itself store, and
+// (2) which layer of the app is responsible for turning that stored value into "here's what's legal."
+
+//# (1) What does the column store?
+// With a flat enum (the original UserStatus), the column is an int/string matching one enum member.
+// With a multi-level tree, a single row is at exactly one *leaf* at any time (e.g. a user can't
+// simultaneously be Active.Verified and Active.Unverified), so the column still holds exactly one
+// value — just now it's the full dotted path as a string, not an enum:
+//
+//     Users.Status = "Active.Verified.Premium"   (nvarchar column, not an int/enum anymore)
+//
+// This is a real schema decision, not just a JSON-shape one: a dotted-path string is easy to look up in
+// the tree but loses compile-time safety (typos compile fine) and is awkward to index/filter on in SQL
+// ("all Active.* users" needs a LIKE 'Active.%' instead of a clean equality/IN). If you don't need the
+// full hierarchy depth in the database (e.g. you only ever query/report on top-level status), an
+// alternative is storing the top-level enum AND a separate nullable sub-status column per level —
+// but that only works cleanly if the tree depth is fixed and known, unlike a fully dynamic JSON tree.
+
+//# (2) Which layer resolves "Status string" -> "what actions/transitions are legal now"?
+// Not UserStateMachine's hardcoded Dictionary<UserStatus, UserStatus[]> — that only knows the flat enum.
+// Add a new component that owns the JSON tree, sitting next to UserStateMachine:
+//
+//     StateMachine/StatusTreeProvider.cs
+//       - Loads/deserializes the JSON (from a config file, embedded resource, or a DB-backed settings
+//         table) ONCE at startup and caches the parsed StatusNode tree — registered as a singleton in DI,
+//         since the tree itself doesn't change per-request.
+//       - Exposes:
+//           StatusNode Resolve(string dottedPath)          // walks the tree for a given row's Status
+//           bool CanTransition(string fromPath, string toPath)
+//           IEnumerable<string> ActionsFor(string dottedPath)   // accumulated down the ancestor chain
+//
+// Then UserService.ChangeUserStatusAsync (same spot as today — see the request-flow diagram above) changes
+// from calling UserStateMachine.Transition(user, newStatus) to:
+//
+//     var user = await _db.Users.FindAsync(id);                       // 1. load the row
+//     if (!_statusTree.CanTransition(user.Status, request.NewStatus))  // 2. ask the tree, not a flat dict
+//         throw new InvalidOperationException($"Cannot transition user {id} from '{user.Status}' to '{request.NewStatus}'.");
+//     user.Status = request.NewStatus;                                 // 3. store the new dotted path
+//     await _db.SaveChangesAsync();                                    // 4. persist
+//
+// The controller/service/exception-handling shape from the "Wiring it into the app" section above doesn't
+// change at all — only what UserStateMachine.Transition delegates to (a tree walk instead of a dictionary
+// lookup) and what type Status is (string path instead of enum) change.
+
+//# Where does CanTransition's tree-walk actually check?
+// Given fromPath = "Active.Verified.Premium" and toPath = "On-Hold":
+//   1. Resolve fromPath by splitting on "." and descending Statuses one level at a time: root -> Active
+//      -> Verified -> Premium, collecting each node's Transitions list along the way (accumulate, don't
+//      overwrite — Premium doesn't declare "On-Hold" itself, but its ancestor Active does).
+//   2. If toPath appears anywhere in that accumulated list, the move is legal.
+// This is exactly why actions/transitions "accumulate down the tree" (noted above) — without that rule,
+// a user sitting three levels deep (Premium) could never reach "On-Hold," "Closed," or "Deactivated,"
+// even though those are meant to apply to all of Active's descendants.
+
+
+
+//? Same idea, extended to 3 levels of nested/hierarchical states (see the "Stateless" callout above —
+// this is the shape a plain Dictionary<TState, TState[]> starts to strain under)
+
+// Level 1: PendingVerification | Active | Suspended | Deactivated
+// Level 2 (substates of Active): Unverified | Verified
+// Level 3 (substates of Active.Verified): Standard | Premium
+//
+// A child inherits every transition its parent has (e.g. anything under Active can still go to
+// Deactivated), and additionally has its own finer-grained transitions among its siblings.
+
+// {
+//   "name": "UserStatus",
+//   "initialState": "PendingVerification",
+//   "states": {
+//     "PendingVerification": {},
+//     "Suspended": {},
+//     "Deactivated": {},
+//     "Active": {
+//       "states": {
+//         "Unverified": {},
+//         "Verified": {
+//           "states": {
+//             "Standard": {},
+//             "Premium": {}
+//           },
+//           "transitions": [
+//             { "from": "Standard", "to": "Premium" },
+//             { "from": "Premium", "to": "Standard" }
+//           ]
+//         }
+//       },
+//       "transitions": [
+//         { "from": "Unverified", "to": "Verified" }
+//       ]
+//     }
+//   },
+//   "transitions": [
+//     { "from": "PendingVerification", "to": "Active" },
+//     { "from": "PendingVerification", "to": "Deactivated" },
+//     { "from": "Active", "to": "Suspended" },
+//     { "from": "Active", "to": "Deactivated" },
+//     { "from": "Suspended", "to": "Active" },
+//     { "from": "Suspended", "to": "Deactivated" }
+//   ]
+// }
+
+//# Why nest transitions at each level instead of one flat list?
+// It mirrors how Stateless's hierarchical states actually work: a transition declared on a parent (e.g.
+// "Active -> Deactivated") applies no matter which substate you're currently in (Unverified, Verified.Standard,
+// Verified.Premium, ...), while transitions declared on a child (e.g. "Standard -> Premium") only make sense
+// between siblings at that level. Flattening it all into one list would lose that "which level does this
+// rule belong to" information — you'd have to re-derive it by naming convention instead of structure.

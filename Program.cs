@@ -1,5 +1,5 @@
 //Note:
-//? Program.cs/class Program is just the default convention the dotnet new templates use, not something the compiler, MSBuild, or the CLR actually requires. I verified this concretely rather than assuming.
+//? Program.cs/class Program is just the default convention the dotnet new templates use, not something the compiler, MSBuild, or the CLR actually requires.
 
 // What I checked
 // OneFlowAPI.csproj has no <StartupObject> setting — nothing explicitly telling the build "use this class as the entry point."
@@ -12,6 +12,9 @@
 // If it finds exactly one candidate → that's automatically the entry point. This is your case.
 // If it finds more than one (e.g., multiple classes with a Main method, common in solutions where a test/console project references others) → build error CS5001 ("does not contain a static 'Main' method suitable for an entry point"), and you'd have to explicitly disambiguate with <StartupObject>OneFlowAPI.Start</StartupObject> in the .csproj.
 // Since this project has zero ambiguity, no <StartupObject> was ever needed — class Start { static void Main(...) } is functionally 100% identical to class Program { static void Main(...) }. The name Start carries no special meaning to the build system at all; it could be named Foo, Bootstrap, Kickoff — doesn't matter.
+
+//  <!-- Specify your preferred Main method class here -->
+// <StartupObject>MyApplication.Namespace.ProgramOne</StartupObject>
 
 //# Why does the file also matter so little?
 // There are actually two distinct styles ASP.NET Core projects use for their entry point, and it's worth being clear on which one this is:
@@ -121,13 +124,25 @@ var builder = WebApplication.CreateBuilder(args);
 // The builder is the starting point for configuring the application's services and middleware before building and running the app.
 
 
+// In modern .NET applications (such as ASP.NET Core web apps or Worker Services), builder is an instance of a builder class like WebApplicationBuilder or HostApplicationBuilder. The Services property exposes the built-in Dependency Injection (DI) container where you register your application's dependencies
+
 //? builder.services is the IServiceCollection where you register services for dependency injection.
 // This is where you add services that your application will use, such as controllers, database contexts, custom services, etc.
 
 // is AddEndpointsApiExplorer pre-defined method in services class? 
 // Yes, AddEndpointsApiExplorer() is a predefined extension method provided by the Microsoft.AspNetCore.Mvc.ApiExplorer namespace.
 
+
+//# builder.Services is used here to register dependencies
+// builder.Services.AddControllers(); 
+// builder.Services.AddScoped<IMyService, MyService>();
+// Use code with caution.
+// builder: An instance of the WebApplicationBuilder class.
+// .Services: A property on that class.
+// The underlying type: It returns an IServiceCollection (specifically, from the Microsoft.Extensions.DependencyInjection namespace), which acts as a centralized list of your application's services
+
 builder.Services.AddEndpointsApiExplorer();
+
 // This is required for minimal APIs to generate OpenAPI documentation. 
 // It registers the services needed to discover and describe your API endpoints, which is essential for Swagger to 
 // generate accurate documentation. Even if you're using controllers, 
@@ -163,6 +178,13 @@ builder.Services.AddEndpointsApiExplorer();
 // Can't we add builder.Services.AddEndpointsApiExplorer(); too inside the if statement for development environment?
 // Yes, you can add builder.Services.AddEndpointsApiExplorer() inside the if statement for the development environment 
 // if you only want to enable API endpoint discovery and documentation generation in development.
+
+//# Key Functions of builder.Services
+// Dependency Registration: It acts as the central registry where you add framework features (like Controllers, Razor Pages, or Database Contexts) and custom classes.
+
+//Lifetime Management: It allows you to specify how instances are created by choosing between AddTransient (new instance every time), AddScoped (one instance per web request), or AddSingleton (a single instance for the app's lifetime).
+
+//Extension Methods: The methods you call on it (like .AddControllers()) are mostly extension methods provided by various .NET packages to cleanly bootstrap features into your application.
 
 builder.Services.AddSwaggerGen();
 // Add swagger for API documentation and testing
@@ -240,13 +262,53 @@ builder.Services.AddScoped<IUserService, UserService>();
 // Why use the Interface (IProductService) instead of ProductService directly?
 // The controller depends on the abstraction, not the implementation. This means you can swap implementations without touching the controller:
 
-//# If we were to inject a service as a singleton instead of scoped, we would have a single instance of that service shared across all requests, 
+// Code Example: Tight vs. Loose Coupling
+// The Tightly Coupled Way (Avoid)The OrderProcessor class handles its own dependency creation. If you need to swap EmailSender for SmsSender, you must rewrite this class.csharp
+
+// public class OrderProcessor
+// {
+//     private EmailSender _sender;
+
+// Private Fields (_camelCase): These hold the raw data within a class scope. The underscore is a widely accepted Microsoft coding convention to instantly identify class-level private variables without needing to use this..
+// Properties (PascalCase): These expose fields and provide getters or setters. Even if a property is private, it still uses standard PascalCase capitalization
+
+//     public OrderProcessor()
+//     {
+//         // Tight coupling: Hardcoded dependency
+//         _sender = new EmailSender(); 
+//     }
+
+//     public void Process() => _sender.Send("Order processed!");
+// }
+
+
+// Use code with caution.The .NET Way (Loose Coupling with DI)The OrderProcessor class asks for an interface. The .NET framework handles providing the concrete object.csharp
+
+// public interface INotificationService 
+// {
+//     void Send(string message);
+// }
+
+// public class OrderProcessor
+// {
+//     private readonly INotificationService _notificationService;
+
+//     // Constructor Injection: Loose coupling
+//     public OrderProcessor(INotificationService notificationService)
+//     {
+//         _notificationService = notificationService;
+//     }
+
+//     public void Process() => _notificationService.Send("Order processed!");
+// }
+
+//# singleton:  If we were to inject a service as a singleton instead of scoped, we would have a single instance of that service shared across all requests, 
 // which could lead to issues with shared state and concurrency, especially if the service 
 // interacts with a database context (like AppDbContext) that is also scoped. 
 // builder.Services.AddSingleton<IProductService, ProductService>(); 
 // Example of a singleton service: a configuration service that reads settings once and provides them throughout the app.
 
-//# If we were to inject a service as transient, a new instance would be created every time it is requested, 
+//# transient:  If we were to inject a service as transient, a new instance would be created every time it is requested, 
 // which could lead to performance issues if the service is expensive to create or if it maintains state that should be shared within a request. 
 // builder.Services.AddTransient<IProductService, ProductService>();
 // Example of a transient service: a service that generates random values or performs simple calculations without maintaining any state.
@@ -1139,7 +1201,7 @@ app.Run();
 
 
 
-//NOTE: Files of  .Net application:
+//NOTE: Files of .Net application:
 // .csproj - project file that defines dependencies, target framework, build settings, etc. (similar to package.json but XML-based)
 // appSettings.json - connection strings, API keys, logging config, feature flags, etc. (non-sensitive config)
 // appSettings.Development.json - development-specific config (but still not ideal for secrets)
